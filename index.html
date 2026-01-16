@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treebo Commercial Evaluator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <!-- html2pdf.js for professional PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              treebo: {
+                orange: '#BC4D2E',
+                brown: '#401E13',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .thv-logo {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          width: 48px;
+          height: 48px;
+          overflow: hidden;
+        }
+        .thv-logo > div {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 900;
+          font-size: 1.25rem;
+          line-height: 1;
+        }
+
+        /* Print/PDF Specific Tweaks */
+        @media print {
+          .no-print { display: none !important; }
+        }
+        
+        /* Ensure PDF capture doesn't cut off cards */
+        .pdf-content {
+          background-color: #f8fafc;
+          padding: 20px;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3"
+  }
+}
+</script>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <div id="root"></div>
+</body>
+</html>
