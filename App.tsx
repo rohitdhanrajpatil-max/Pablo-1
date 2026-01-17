@@ -224,81 +224,105 @@ const App: React.FC = () => {
     const isHealthReport = result.executiveSummary.evaluationType === 'Existing Hotel Health Report';
     return (
       <Layout fullWidth={true}>
-        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
-            <button onClick={handleReset} className="inline-flex items-center text-slate-500 hover:text-treebo-brown font-black text-xs uppercase tracking-widest gap-2 group transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
-              </svg>
+        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 pb-20 px-6 md:px-12 pt-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 no-print">
+            <button onClick={handleReset} className="inline-flex items-center text-slate-400 hover:text-treebo-brown font-black text-xs uppercase tracking-[0.3em] gap-3 group transition-all py-2 pr-4">
+              <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center group-hover:bg-treebo-brown group-hover:text-white transition-all shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+                </svg>
+              </div>
               Research New Asset
             </button>
-            <div className="flex items-center gap-3">
-               <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm ${isHealthReport ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-treebo-orange/5 text-treebo-orange border-treebo-orange/20'}`}>
+            <div className="flex items-center gap-4">
+               <span className={`px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.25em] border shadow-sm backdrop-blur-sm ${isHealthReport ? 'bg-teal-50/80 text-teal-700 border-teal-200' : 'bg-treebo-orange/5 text-treebo-orange border-treebo-orange/20'}`}>
                  {result.executiveSummary.evaluationType}
                </span>
-               <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{new Date().toLocaleDateString()}</div>
+               <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest bg-white/80 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">{new Date().toLocaleDateString()}</div>
             </div>
           </div>
 
-          <div ref={reportRef} className="pdf-export-container space-y-10 bg-transparent">
-            <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden relative avoid-page-break shadow-sm">
-              <div className={`h-2 w-full ${isHealthReport ? 'bg-teal-500' : 'bg-treebo-orange'}`}></div>
-              <div className="p-8 md:p-12">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                  <div className="space-y-4 lg:col-span-1">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Commercial Audit Report</p>
+          <div ref={reportRef} className="pdf-export-container space-y-12 bg-transparent">
+            {/* Executive Hero Section */}
+            <div className="bg-white rounded-[3rem] border border-slate-200 overflow-hidden relative avoid-page-break shadow-xl shadow-slate-200/50">
+              <div className={`h-2.5 w-full ${isHealthReport ? 'bg-teal-500' : 'bg-treebo-orange'}`}></div>
+              <div className="p-10 md:p-16">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+                  <div className="space-y-6 lg:col-span-1">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-900 rounded-lg">
+                       <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                       <span className="text-[9px] font-black text-white uppercase tracking-widest">Active Audit Report</span>
+                    </div>
                     <div>
-                      <h2 className="text-4xl md:text-5xl font-black text-treebo-brown leading-none tracking-tighter mb-2">{result.executiveSummary.hotelName}</h2>
-                      <div className="flex items-center gap-1.5 text-treebo-orange uppercase font-black text-xs tracking-widest">
+                      <h2 className="text-5xl md:text-6xl font-black text-treebo-brown leading-none tracking-tighter mb-3">{result.executiveSummary.hotelName}</h2>
+                      <div className="flex items-center gap-2 text-treebo-orange uppercase font-black text-sm tracking-[0.2em] bg-treebo-orange/5 px-4 py-1.5 rounded-full inline-flex border border-treebo-orange/10">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         {result.executiveSummary.city}
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Strategy Verdict</p>
-                    <div className="pt-1"><DecisionBadge decision={result.executiveSummary.finalDecision} /></div>
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Strategy Verdict</p>
+                    <div className="pt-2"><DecisionBadge decision={result.executiveSummary.finalDecision} /></div>
                   </div>
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Commercial Score</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className={`text-6xl font-black tracking-tighter ${result.executiveSummary.averageScore >= 7 ? 'text-green-600' : result.executiveSummary.averageScore >= 5 ? 'text-amber-600' : 'text-red-600'}`}>
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Commercial Score</p>
+                    <div className="flex items-baseline gap-3">
+                      <span className={`text-7xl font-black tracking-tighter ${result.executiveSummary.averageScore >= 7 ? 'text-green-600' : result.executiveSummary.averageScore >= 5 ? 'text-amber-600' : 'text-red-600'}`}>
                         {result.executiveSummary.averageScore.toFixed(1)}
                       </span>
-                      <span className="text-slate-300 text-2xl font-black">/10</span>
+                      <span className="text-slate-300 text-3xl font-black">/10</span>
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Report Controls</p>
-                    <div className="flex flex-wrap gap-2 no-print">
+                  <div className="space-y-5">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Report Management</p>
+                    <div className="flex flex-col gap-3 no-print">
                         <button 
                           onClick={handleShare}
-                          className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-treebo-brown transition-all group shadow-sm"
+                          className="w-full inline-flex items-center justify-center gap-3 px-6 py-3.5 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-treebo-brown transition-all group shadow-lg active:scale-95"
                         >
-                          {shareFeedback ? 'URL COPIED' : 'SHARE STRATEGY'}
+                          {shareFeedback ? 'VERIFIED URL COPIED' : 'SHARE STRATEGY'}
                         </button>
                         <button 
                           onClick={handleExportPDF}
                           disabled={exporting}
-                          className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-treebo-orange/10 border border-treebo-orange/20 text-[10px] font-black text-treebo-orange uppercase tracking-widest hover:bg-treebo-orange hover:text-white transition-all group shadow-sm"
+                          className="w-full inline-flex items-center justify-center gap-3 px-6 py-3.5 rounded-2xl bg-treebo-orange text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-treebo-brown transition-all group shadow-lg active:scale-95 disabled:opacity-50"
                         >
-                          {exporting ? 'GENERATING...' : 'EXPORT PDF'}
+                          {exporting ? 'GENERATING ARCHIVE...' : 'EXPORT PDF DOSSIER'}
                         </button>
                     </div>
-                    <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-2">
-                      Ref: {Math.random().toString(36).substring(7).toUpperCase()} / {new Date().toLocaleTimeString()}
-                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <section className="space-y-6 avoid-page-break">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
-                OTA Performance Audit
+            {/* Treebo Synergy - High Priority Dashboard Module */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 avoid-page-break">
+                {result.treeboPresence && (
+                  <div className="lg:col-span-2">
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] flex items-center gap-5 mb-6">
+                      Network Strategy Radar
+                      <div className="h-px bg-slate-200 flex-grow"></div>
+                    </h3>
+                    <TreeboPresenceSection presence={result.treeboPresence} />
+                  </div>
+                )}
+                
+                <div className="lg:col-span-1">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] flex items-center gap-5 mb-6">
+                    Audit Protocols
+                    <div className="h-px bg-slate-200 flex-grow"></div>
+                  </h3>
+                  <ProtocolStatusCard status={result.protocolStatus} />
+                </div>
+            </div>
+
+            <section className="space-y-8 avoid-page-break">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] flex items-center gap-5">
+                OTA Channel Integrity Audit
                 <div className="h-px bg-slate-200 flex-grow"></div>
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8">
                 {(sortedOtaAudit || []).map((audit, idx) => (
                   <OTAAuditCard key={idx} audit={audit} />
                 ))}
@@ -306,50 +330,30 @@ const App: React.FC = () => {
             </section>
 
             {result.roomTypeAudit && result.roomTypeAudit.length > 0 && (
-              <section className="space-y-6 page-break-before">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
-                  Room Type Detailed Audit
+              <section className="space-y-8 page-break-before">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] flex items-center gap-5">
+                  Inventory Depth & Unit Audit
                   <div className="h-px bg-slate-200 flex-grow"></div>
                 </h3>
                 <RoomTypeAuditSection rooms={result.roomTypeAudit} />
               </section>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 avoid-page-break">
-                {result.treeboPresence && (
-                  <section className="space-y-4">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
-                      Treebo Network Synergy
-                      <div className="h-px bg-slate-200 flex-grow"></div>
-                    </h3>
-                    <TreeboPresenceSection presence={result.treeboPresence} />
-                  </section>
-                )}
-                
-                <section className="space-y-4 avoid-page-break">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
-                    Validation Protocols
-                    <div className="h-px bg-slate-200 flex-grow"></div>
-                  </h3>
-                  <ProtocolStatusCard status={result.protocolStatus} />
-                </section>
-            </div>
-
             {result.competitors && result.competitors.length > 0 && (
-              <section className="space-y-8 page-break-before">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4 flex-grow">
-                    Micro-Market Competition & Benchmarking
+              <section className="space-y-10 page-break-before">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] flex items-center gap-5 flex-grow">
+                    Micro-Market Competitive Index
                     <div className="h-px bg-slate-200 flex-grow"></div>
                   </h3>
-                  <div className="flex items-center gap-3 no-print overflow-x-auto pb-2 sm:pb-0">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Filter Category:</span>
-                    <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+                  <div className="flex items-center gap-4 no-print overflow-x-auto pb-2 sm:pb-0">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap bg-white px-3 py-1.5 rounded-lg border border-slate-200">Asset Category:</span>
+                    <div className="flex items-center bg-white border border-slate-200 p-1.5 rounded-[1.5rem] shadow-sm">
                       {availableCategories.map(cat => (
                         <button
                           key={cat}
                           onClick={() => setCategoryFilter(cat)}
-                          className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${categoryFilter === cat ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                          className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${categoryFilter === cat ? 'bg-treebo-brown text-white shadow-lg' : 'text-slate-400 hover:text-treebo-brown'}`}
                         >
                           {cat}
                         </button>
@@ -358,69 +362,77 @@ const App: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  <div className="lg:col-span-2 bg-white rounded-[2rem] border border-slate-200 p-8 md:p-12 avoid-page-break shadow-sm">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
-                      <div>
-                        <h4 className="text-treebo-brown font-black uppercase text-xs tracking-widest">Benchmarking Data Visualization</h4>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Direct Head-to-Head Comparison</p>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                  <div className="lg:col-span-2 bg-white rounded-[3rem] border border-slate-200 p-10 md:p-14 avoid-page-break shadow-xl shadow-slate-200/50">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
+                      <div className="space-y-1">
+                        <h4 className="text-treebo-brown font-black uppercase text-xs tracking-[0.2em]">Strategy Visualization Layer</h4>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Market Comparison Index (MCI)</p>
                       </div>
-                      <div className="inline-flex bg-slate-100 p-1.5 rounded-2xl no-print">
-                        <button onClick={() => setComparisonMetric('rating')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${comparisonMetric === 'rating' ? 'bg-treebo-brown text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>OTA Rating</button>
-                        <button onClick={() => setComparisonMetric('adr')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${comparisonMetric === 'adr' ? 'bg-treebo-orange text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>Est. ADR</button>
+                      <div className="inline-flex bg-slate-50 p-1.5 rounded-[2rem] border border-slate-200 no-print">
+                        <button onClick={() => setComparisonMetric('rating')} className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${comparisonMetric === 'rating' ? 'bg-treebo-brown text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>OTA Rating</button>
+                        <button onClick={() => setComparisonMetric('adr')} className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${comparisonMetric === 'adr' ? 'bg-treebo-orange text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}>Target ADR</button>
                       </div>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-8">
                       {(chartData || []).map((data, idx) => {
                         const val = comparisonMetric === 'rating' ? data.rating : data.adr;
                         const percentage = (val / maxVal) * 100;
                         return (
-                          <div key={idx} className="space-y-2">
-                            <div className="flex justify-between px-1">
-                              <span className={`text-[10px] font-black uppercase tracking-widest ${data.isTarget ? 'text-treebo-orange' : 'text-slate-500'}`}>{data.name}</span>
-                              <span className="text-xs font-black text-treebo-brown">{comparisonMetric === 'adr' ? `${result.targetHotelMetrics?.adrCurrency || 'INR'} ${val}` : `${val}/5`}</span>
+                          <div key={idx} className="space-y-3 group">
+                            <div className="flex justify-between items-end px-1">
+                              <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${data.isTarget ? 'text-treebo-orange' : 'text-slate-500'}`}>
+                                {data.isTarget && <span className="mr-2 inline-block w-2 h-2 rounded-full bg-treebo-orange animate-pulse"></span>}
+                                {data.name}
+                              </span>
+                              <span className="text-sm font-black text-treebo-brown bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">
+                                {comparisonMetric === 'adr' ? `${result.targetHotelMetrics?.adrCurrency || 'INR'} ${val.toLocaleString()}` : `${val.toFixed(1)}/5`}
+                              </span>
                             </div>
-                            <div className="h-6 w-full bg-slate-50 rounded-full border border-slate-100 overflow-hidden">
-                              <div className={`h-full transition-all duration-1000 ease-out ${data.isTarget ? (comparisonMetric === 'adr' ? 'bg-treebo-orange' : 'bg-treebo-brown') : 'bg-slate-200'}`} style={{ width: `${percentage}%` }}></div>
+                            <div className="h-4 w-full bg-slate-50 rounded-full border border-slate-100 overflow-hidden shadow-inner p-0.5">
+                              <div className={`h-full transition-all duration-1000 ease-out rounded-full shadow-lg ${data.isTarget ? (comparisonMetric === 'adr' ? 'bg-treebo-orange' : 'bg-treebo-brown') : 'bg-slate-300'}`} style={{ width: `${Math.max(percentage, 5)}%` }}></div>
                             </div>
                           </div>
                         );
                       })}
                       {chartData.length <= 1 && (
-                        <div className="py-10 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest border border-dashed border-slate-200 rounded-2xl">
-                          No competitors found in this category.
+                        <div className="py-16 text-center text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/50">
+                          No direct competitors indexed in this category.
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="lg:col-span-1 bg-white rounded-[2rem] border border-slate-200 overflow-hidden avoid-page-break shadow-sm flex flex-col">
-                    <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                      <h4 className="text-treebo-brown font-black uppercase text-[10px] tracking-widest">Competitive Mapping</h4>
-                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{filteredCompetitors.length} ASSETS</span>
+                  <div className="lg:col-span-1 bg-white rounded-[3rem] border border-slate-200 overflow-hidden avoid-page-break shadow-xl shadow-slate-200/50 flex flex-col">
+                    <div className="p-8 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                      <div className="space-y-1">
+                        <h4 className="text-treebo-brown font-black uppercase text-[10px] tracking-[0.3em]">Competitive Radar</h4>
+                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">PROXIMITY MAPPING</p>
+                      </div>
+                      <span className="bg-slate-900 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">{filteredCompetitors.length} NODES</span>
                     </div>
-                    <div className="divide-y divide-slate-50 overflow-y-auto max-h-[600px]">
+                    <div className="divide-y divide-slate-100 overflow-y-auto max-h-[600px] custom-scrollbar">
                       {filteredCompetitors.length > 0 ? filteredCompetitors.map((comp, idx) => (
-                        <div key={idx} className="p-6 hover:bg-slate-50 transition-colors">
-                          <div className="flex justify-between items-start mb-2">
-                            <p className="text-xs font-black text-treebo-brown uppercase tracking-tight">{comp.name}</p>
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{comp.distance}</span>
+                        <div key={idx} className="p-8 hover:bg-slate-50 transition-colors group">
+                          <div className="flex justify-between items-start mb-3">
+                            <p className="text-sm font-black text-treebo-brown uppercase tracking-tight group-hover:text-treebo-orange transition-colors">{comp.name}</p>
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-full">{comp.distance}</span>
                           </div>
                           <div className="flex justify-between items-center">
-                             <div className="flex items-center gap-3">
-                                <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[9px] font-black uppercase tracking-widest">{comp.category}</span>
-                                <div className="flex items-center gap-1">
-                                  <span className="text-xs font-black text-slate-700">{comp.otaRating}</span>
-                                  <svg className="w-3 h-3 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                             <div className="flex items-center gap-4">
+                                <span className="px-2.5 py-1 bg-slate-900 text-white rounded-lg text-[8px] font-black uppercase tracking-[0.2em]">{comp.category}</span>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-xs font-black text-slate-700">{comp.otaRating.toFixed(1)}</span>
+                                  <svg className="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                                 </div>
                              </div>
-                             <span className="text-xs font-black text-treebo-orange">{comp.estimatedADR}</span>
+                             <span className="text-sm font-black text-treebo-orange">{comp.estimatedADR}</span>
                           </div>
                         </div>
                       )) : (
-                        <div className="p-12 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest italic">
-                          No matching competitors.
+                        <div className="p-16 text-center text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] italic">
+                          No direct peers found.
                         </div>
                       )}
                     </div>
@@ -429,30 +441,36 @@ const App: React.FC = () => {
               </section>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 avoid-page-break">
-                  <div className="bg-white rounded-[2rem] border border-slate-200 p-10 shadow-sm">
-                    <h4 className="text-treebo-brown font-black uppercase text-xs tracking-widest mb-8 flex items-center gap-3">
-                       <div className="w-1.5 h-6 bg-treebo-brown rounded-full"></div> 
-                       Market Demand Drivers
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 avoid-page-break">
+                  <div className="bg-white rounded-[3rem] border border-slate-200 p-12 shadow-xl shadow-slate-200/50 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 -rotate-12 transition-transform group-hover:rotate-0">
+                      <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                    </div>
+                    <h4 className="text-treebo-brown font-black uppercase text-xs tracking-[0.3em] mb-10 flex items-center gap-4">
+                       <div className="w-2 h-8 bg-treebo-brown rounded-full"></div> 
+                       Enterprise Demand Drivers
                     </h4>
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       {(result.topCorporates || []).map((corp, i) => (
-                        <li key={i} className="flex items-center gap-3 px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 text-xs font-black text-slate-700 hover:bg-white hover:shadow-md transition-all">
-                          <span className="w-6 h-6 flex items-center justify-center bg-white rounded text-[10px] font-black text-treebo-brown border border-slate-200">{i+1}</span>
+                        <li key={i} className="flex items-center gap-4 px-6 py-5 bg-slate-50 rounded-[2rem] border border-slate-100 text-xs font-black text-slate-700 hover:bg-white hover:shadow-xl hover:border-treebo-brown transition-all group/item">
+                          <span className="w-8 h-8 flex items-center justify-center bg-white rounded-xl text-[10px] font-black text-treebo-brown border border-slate-200 group-hover/item:bg-treebo-brown group-hover/item:text-white transition-colors">{i+1}</span>
                           {corp}
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <div className="bg-white rounded-[2rem] border border-slate-200 p-10 shadow-sm">
-                    <h4 className="text-treebo-orange font-black uppercase text-xs tracking-widest mb-8 flex items-center gap-3">
-                       <div className="w-1.5 h-6 bg-treebo-orange rounded-full"></div> 
-                       Regional Partnership Hub
+                  <div className="bg-white rounded-[3rem] border border-slate-200 p-12 shadow-xl shadow-slate-200/50 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 rotate-12 transition-transform group-hover:rotate-0">
+                      <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    </div>
+                    <h4 className="text-treebo-orange font-black uppercase text-xs tracking-[0.3em] mb-10 flex items-center gap-4">
+                       <div className="w-2 h-8 bg-treebo-orange rounded-full"></div> 
+                       Strategic Channel Partners
                     </h4>
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       {(result.topTravelAgents || []).map((agent, i) => (
-                        <li key={i} className="flex items-center gap-3 px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 text-xs font-black text-slate-700 hover:bg-white hover:shadow-md transition-all">
-                          <span className="w-6 h-6 flex items-center justify-center bg-white rounded text-[10px] font-black text-treebo-orange border border-slate-200">{i+1}</span>
+                        <li key={i} className="flex items-center gap-4 px-6 py-5 bg-slate-50 rounded-[2rem] border border-slate-100 text-xs font-black text-slate-700 hover:bg-white hover:shadow-xl hover:border-treebo-orange transition-all group/item">
+                          <span className="w-8 h-8 flex items-center justify-center bg-white rounded-xl text-[10px] font-black text-treebo-orange border border-slate-200 group-hover/item:bg-treebo-orange group-hover/item:text-white transition-colors">{i+1}</span>
                           {agent}
                         </li>
                       ))}
@@ -461,49 +479,50 @@ const App: React.FC = () => {
             </div>
 
             {result.guestReviews && (
-                <section className="avoid-page-break space-y-6">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
-                    Guest Sentiment & Quality Index
+                <section className="avoid-page-break space-y-8">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] flex items-center gap-5">
+                    Guest Quality Index & Sentiment Analysis
                     <div className="h-px bg-slate-200 flex-grow"></div>
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                     {(result.guestReviews || []).map((rev, i) => (
-                      <div key={i} className="bg-slate-900 text-white rounded-[2.5rem] p-10 space-y-8 border border-white/5 hover:bg-slate-800 transition-colors shadow-2xl relative overflow-hidden group">
+                      <div key={i} className="bg-slate-900 text-white rounded-[3rem] p-12 space-y-10 border border-white/5 hover:bg-slate-800 transition-all shadow-2xl relative overflow-hidden group">
                         {/* Sentiment Score indicator */}
-                        <div className="absolute top-0 right-0 p-8">
-                          <div className={`w-16 h-16 rounded-full border-4 flex items-center justify-center font-black text-sm tracking-tighter ${rev.sentimentScore >= 70 ? 'border-green-500 text-green-400' : rev.sentimentScore >= 40 ? 'border-amber-500 text-amber-400' : 'border-red-500 text-red-400'}`}>
-                            {rev.sentimentScore}%
+                        <div className="absolute top-0 right-0 p-10">
+                          <div className={`w-20 h-20 rounded-full border-[6px] flex flex-col items-center justify-center font-black transition-transform group-hover:scale-110 duration-500 ${rev.sentimentScore >= 70 ? 'border-green-500 text-green-400' : rev.sentimentScore >= 40 ? 'border-amber-500 text-amber-400' : 'border-red-500 text-red-400'}`}>
+                            <span className="text-xl tracking-tighter">{rev.sentimentScore}%</span>
+                            <span className="text-[7px] uppercase tracking-widest leading-none">SCORE</span>
                           </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-black text-treebo-orange uppercase tracking-[0.4em] border-b border-white/10 pb-4">{rev.platform}</p>
-                          <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest pt-2">Algorithmic Sentiment Score</p>
+                        <div className="space-y-3">
+                          <p className="text-[10px] font-black text-treebo-orange uppercase tracking-[0.5em] border-b border-white/10 pb-5">{rev.platform}</p>
+                          <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest pt-2">Algorithmic Satisfaction Audit</p>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-4">
-                                <p className="text-[9px] font-black text-green-500 uppercase tracking-widest flex items-center gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> 
+                        <div className="space-y-10">
+                            <div className="space-y-5">
+                                <p className="text-[9px] font-black text-green-500 uppercase tracking-widest flex items-center gap-3">
+                                  <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span> 
                                   Key Satisfiers
                                 </p>
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                   {(rev.positive || []).map((p, j) => (
-                                    <p key={j} className="text-xs font-bold text-white/70 leading-snug flex gap-2">
-                                      <span className="text-green-500/50">•</span> {p}
+                                    <p key={j} className="text-xs font-bold text-white/70 leading-snug flex gap-3">
+                                      <span className="text-green-500/50 font-black">•</span> {p}
                                     </p>
                                   ))}
                                 </div>
                             </div>
-                            <div className="space-y-4">
-                                <p className="text-[9px] font-black text-red-500 uppercase tracking-widest flex items-center gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                                  Friction Points
+                            <div className="space-y-5">
+                                <p className="text-[9px] font-black text-red-500 uppercase tracking-widest flex items-center gap-3">
+                                  <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></span>
+                                  Critical Friction
                                 </p>
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                   {(rev.negative || []).map((n, j) => (
-                                    <p key={j} className="text-xs font-bold text-white/70 leading-snug flex gap-2">
-                                      <span className="text-red-500/50">•</span> {n}
+                                    <p key={j} className="text-xs font-bold text-white/70 leading-snug flex gap-3">
+                                      <span className="text-red-500/50 font-black">•</span> {n}
                                     </p>
                                   ))}
                                 </div>
@@ -512,11 +531,11 @@ const App: React.FC = () => {
 
                         {/* Recurring Themes */}
                         {rev.recurringThemes && rev.recurringThemes.length > 0 && (
-                          <div className="pt-8 border-t border-white/10">
-                            <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-4">Recurring Themes Identification</p>
-                            <div className="flex flex-wrap gap-2">
+                          <div className="pt-10 border-t border-white/10">
+                            <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em] mb-6">Strategy Themes Identification</p>
+                            <div className="flex flex-wrap gap-2.5">
                               {rev.recurringThemes.map((theme, idx) => (
-                                <span key={idx} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ${theme.impact === 'positive' ? 'bg-green-500/10 border-green-500/30 text-green-400' : theme.impact === 'negative' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-white/5 border-white/10 text-white/60'}`}>
+                                <span key={idx} className={`px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all hover:scale-105 ${theme.impact === 'positive' ? 'bg-green-500/10 border-green-500/30 text-green-400 shadow-lg shadow-green-500/5' : theme.impact === 'negative' ? 'bg-red-500/10 border-red-500/30 text-red-400 shadow-lg shadow-red-500/5' : 'bg-white/5 border-white/10 text-white/60'}`}>
                                   {theme.theme}
                                 </span>
                               ))}
@@ -529,30 +548,36 @@ const App: React.FC = () => {
                 </section>
             )}
 
-            <section className="page-break-before space-y-12 pb-20">
+            <section className="page-break-before space-y-16 pb-20">
               <div className="avoid-page-break">
                 <ScoreCard data={result.scorecard || []} />
               </div>
               
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 avoid-page-break">
-                <div className="lg:col-span-2 bg-white rounded-[2rem] border border-slate-200 p-10 space-y-8 shadow-sm">
-                  <h4 className="text-treebo-brown font-black uppercase text-xs tracking-widest flex items-center gap-4">
-                    <span className="w-2 h-8 bg-red-600 rounded-full"></span> Priority Risk Mitigation Audit
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 avoid-page-break items-stretch">
+                <div className="lg:col-span-2 bg-white rounded-[3rem] border border-slate-200 p-12 md:p-16 space-y-10 shadow-xl shadow-slate-200/50 h-full">
+                  <h4 className="text-treebo-brown font-black uppercase text-xs tracking-[0.3em] flex items-center gap-5">
+                    <span className="w-2.5 h-10 bg-red-600 rounded-full"></span> Critical Strategy Risk Audit
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-8">
                     {(result.keyRisks || []).map((risk, i) => (
-                      <div key={i} className="text-xs font-black text-slate-700 leading-relaxed flex gap-3 pb-4 border-b border-slate-50 last:border-0">
-                        <span className="text-red-600 font-black">!!</span> {risk}
+                      <div key={i} className="text-xs font-black text-slate-700 leading-relaxed flex gap-4 pb-6 border-b border-slate-100 last:border-0 hover:border-red-600 transition-colors">
+                        <span className="text-red-600 font-black text-lg leading-none">!!</span> {risk}
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="lg:col-span-1 bg-treebo-brown text-white rounded-[2.5rem] p-10 flex flex-col justify-center border-l-[16px] border-treebo-orange shadow-2xl">
-                  <h4 className="text-white/40 font-black text-[10px] uppercase tracking-[0.4em] mb-6">Leadership Final Verdict</h4>
-                  <p className="text-white font-black text-xl italic leading-snug tracking-tight">"{result.finalRecommendation}"</p>
-                  <div className="mt-8 pt-8 border-t border-white/10 flex justify-between items-center">
-                    <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Strategic Asset Evaluation</span>
-                    <div className="w-8 h-8 bg-treebo-orange rounded-lg shadow-inner"></div>
+                <div className="lg:col-span-1 bg-treebo-brown text-white rounded-[3.5rem] p-12 md:p-16 flex flex-col justify-center border-l-[20px] border-treebo-orange shadow-2xl relative overflow-hidden h-full">
+                  <div className="absolute top-0 left-0 w-full h-2 bg-treebo-orange/30"></div>
+                  <h4 className="text-white/40 font-black text-[10px] uppercase tracking-[0.5em] mb-8">Executive Final Directive</h4>
+                  <p className="text-white font-black text-2xl italic leading-tight tracking-tight">"{result.finalRecommendation}"</p>
+                  <div className="mt-12 pt-12 border-t border-white/10 flex justify-between items-center">
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] block">STRATEGY CLASSIFICATION</span>
+                      <span className="text-[10px] font-black text-treebo-orange uppercase tracking-widest">Enterprise Priority Alpha</span>
+                    </div>
+                    <div className="w-12 h-12 bg-treebo-orange rounded-2xl shadow-inner flex items-center justify-center">
+                       <div className="w-6 h-6 border-2 border-white/20 rounded-full animate-ping"></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -565,77 +590,77 @@ const App: React.FC = () => {
 
   return (
     <Layout fullWidth={false}>
-      <div className="max-w-5xl mx-auto space-y-16 animate-in fade-in zoom-in-95 duration-700 py-16">
-        <div className="text-center space-y-8">
-          <div className="inline-flex items-center gap-3">
-            <span className="px-5 py-2 rounded-full bg-treebo-brown text-white text-[10px] font-black uppercase tracking-[0.3em] shadow-xl">Strategy Nexus 3.4.1</span>
-            <div className="h-4 w-px bg-slate-200"></div>
-            <span className="px-5 py-2 rounded-full bg-treebo-orange/10 text-treebo-orange text-[10px] font-black uppercase tracking-[0.3em]">Resilient Channel Active</span>
+      <div className="max-w-5xl mx-auto space-y-16 animate-in fade-in zoom-in-95 duration-1000 py-20">
+        <div className="text-center space-y-10">
+          <div className="inline-flex items-center gap-4 bg-white p-2 rounded-full border border-slate-200 shadow-sm">
+            <span className="px-6 py-2.5 rounded-full bg-treebo-brown text-white text-[10px] font-black uppercase tracking-[0.4em] shadow-xl">Strat-OS v3.4.1</span>
+            <div className="h-6 w-px bg-slate-200"></div>
+            <span className="px-6 py-2.5 rounded-full bg-treebo-orange/10 text-treebo-orange text-[10px] font-black uppercase tracking-[0.4em]">Proprietary Decision Layer</span>
           </div>
-          <h2 className="text-7xl font-black text-treebo-brown tracking-tighter leading-[0.9] flex flex-col items-center">
-            COMMERCIAL ASSET
-            <span className="text-treebo-orange block">RESEARCH & AUDIT</span>
+          <h2 className="text-8xl md:text-9xl font-black text-treebo-brown tracking-tighter leading-[0.85] flex flex-col items-center">
+            COMMERCIAL
+            <span className="text-treebo-orange block">AUDit & STRATegy</span>
           </h2>
-          <p className="text-slate-500 text-xl max-w-2xl mx-auto font-medium leading-relaxed tracking-tight">
-            High-fidelity micro-market analysis for Treebo onboarding decisions. Auditing OTA channel blockers, demand drivers, and competitive ADR indexing in real-time.
+          <p className="text-slate-500 text-2xl max-w-3xl mx-auto font-medium leading-relaxed tracking-tight">
+            High-fidelity strategic research for Treebo portfolio onboarding. Real-time OTA channel mapping, demand cluster auditing, and competitive ADR indexing.
           </p>
         </div>
 
-        <div className="bg-white rounded-[4rem] shadow-2xl border border-slate-100 overflow-hidden ring-1 ring-slate-200/50">
-          <div className="p-12 md:p-16 space-y-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center px-2">
-                  <label className="text-[10px] font-black text-treebo-brown uppercase tracking-[0.3em]">Asset Identity</label>
-                  {fieldErrors.hotelName && <span className="text-[9px] font-black text-red-500 uppercase tracking-widest animate-pulse">Minimum 3 characters required</span>}
+        <div className="bg-white rounded-[5rem] shadow-2xl border border-slate-100 overflow-hidden ring-1 ring-slate-200/50">
+          <div className="p-16 md:p-24 space-y-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div className="space-y-6">
+                <div className="flex justify-between items-center px-4">
+                  <label className="text-[11px] font-black text-treebo-brown uppercase tracking-[0.4em]">Target Asset Identity</label>
+                  {fieldErrors.hotelName && <span className="text-[10px] font-black text-red-500 uppercase tracking-widest animate-pulse">Min 3 Chars required</span>}
                 </div>
-                <input type="text" className={`w-full px-8 py-6 rounded-[2rem] border-4 transition-all text-treebo-brown font-black text-xl bg-slate-50 focus:ring-0 placeholder:text-slate-300 ${fieldErrors.hotelName ? 'border-red-200 bg-red-50 focus:border-red-500' : 'border-slate-50 focus:border-treebo-orange'}`} placeholder="e.g. Treebo Trend Sapphire" value={hotelName} onChange={(e) => { setHotelName(e.target.value); if (fieldErrors.hotelName) setFieldErrors(prev => ({ ...prev, hotelName: false })); }} />
+                <input type="text" className={`w-full px-10 py-8 rounded-[2.5rem] border-4 transition-all text-treebo-brown font-black text-2xl bg-slate-50 focus:ring-0 placeholder:text-slate-300 ${fieldErrors.hotelName ? 'border-red-200 bg-red-50 focus:border-red-500' : 'border-slate-50 focus:border-treebo-orange'}`} placeholder="e.g. Treebo Trend Sapphire" value={hotelName} onChange={(e) => { setHotelName(e.target.value); if (fieldErrors.hotelName) setFieldErrors(prev => ({ ...prev, hotelName: false })); }} />
               </div>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center px-2">
-                  <label className="text-[10px] font-black text-treebo-brown uppercase tracking-[0.3em]">Primary Location</label>
-                  {fieldErrors.city && <span className="text-[9px] font-black text-red-500 uppercase tracking-widest animate-pulse">Required</span>}
+              <div className="space-y-6">
+                <div className="flex justify-between items-center px-4">
+                  <label className="text-[11px] font-black text-treebo-brown uppercase tracking-[0.4em]">Micro-Market / City</label>
+                  {fieldErrors.city && <span className="text-[10px] font-black text-red-500 uppercase tracking-widest animate-pulse">Required field</span>}
                 </div>
-                <input type="text" className={`w-full px-8 py-6 rounded-[2rem] border-4 transition-all text-treebo-brown font-black text-xl bg-slate-50 focus:ring-0 placeholder:text-slate-300 ${fieldErrors.city ? 'border-red-200 bg-red-50 focus:border-red-500' : 'border-slate-50 focus:border-treebo-orange'}`} placeholder="e.g. Gurgaon" value={city} onChange={(e) => { setCity(e.target.value); if (fieldErrors.city) setFieldErrors(prev => ({ ...prev, city: false })); }} />
+                <input type="text" className={`w-full px-10 py-8 rounded-[2.5rem] border-4 transition-all text-treebo-brown font-black text-2xl bg-slate-50 focus:ring-0 placeholder:text-slate-300 ${fieldErrors.city ? 'border-red-200 bg-red-50 focus:border-red-500' : 'border-slate-50 focus:border-treebo-orange'}`} placeholder="e.g. Bangalore" value={city} onChange={(e) => { setCity(e.target.value); if (fieldErrors.city) setFieldErrors(prev => ({ ...prev, city: false })); }} />
               </div>
             </div>
 
-            <div className="space-y-6">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] block text-center">Audit Mode Selection</label>
-              <div className="flex flex-wrap justify-center gap-6">
+            <div className="space-y-8">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.5em] block text-center">Strategic Audit Mode Selection</label>
+              <div className="flex flex-wrap justify-center gap-8">
                 {(['New Onboarding', 'Existing Hotel Health Report'] as EvaluationType[]).map((type) => (
-                  <button key={type} onClick={() => setReportType(type)} className={`px-10 py-5 rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] border-4 transition-all transform active:scale-95 ${reportType === type ? 'border-treebo-brown bg-treebo-brown text-white shadow-2xl scale-110' : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200 hover:text-slate-600'}`}>{type}</button>
+                  <button key={type} onClick={() => setReportType(type)} className={`px-12 py-7 rounded-[3rem] text-sm font-black uppercase tracking-[0.25em] border-4 transition-all transform active:scale-95 ${reportType === type ? 'border-treebo-brown bg-treebo-brown text-white shadow-2xl scale-110' : 'border-slate-50 bg-slate-50 text-slate-400 hover:border-slate-200 hover:text-slate-600'}`}>{type}</button>
                 ))}
               </div>
             </div>
             
-            <div className="pt-6">
-              <button disabled={loading || !hotelName.trim() || !city.trim()} onClick={handleEvaluate} className={`w-full py-8 rounded-[3rem] font-black text-2xl text-white transition-all transform hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-6 shadow-2xl tracking-tighter ${loading ? 'bg-slate-400 cursor-not-allowed' : 'bg-treebo-orange hover:bg-treebo-brown shadow-orange-200/50'}`}>
+            <div className="pt-8">
+              <button disabled={loading || !hotelName.trim() || !city.trim()} onClick={handleEvaluate} className={`w-full py-10 rounded-[4rem] font-black text-3xl text-white transition-all transform hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-8 shadow-2xl tracking-tighter ${loading ? 'bg-slate-400 cursor-not-allowed' : 'bg-treebo-orange hover:bg-treebo-brown shadow-orange-200/60'}`}>
                 {loading ? (
                   <>
-                    <svg className="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    Executing Strategic Research...
+                    <svg className="animate-spin h-10 w-10 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Synthesizing Strategy Matrix...
                   </>
                 ) : (
-                  <>GENERATE AUDIT REPORT</>
+                  <>INITIATE FULL AUDIT</>
                 )}
               </button>
               {error && (
-                <div className="mt-8 text-red-600 bg-red-50 p-8 rounded-[2rem] text-xs text-center font-black uppercase tracking-widest border border-red-100 flex flex-col items-center justify-center gap-4 animate-in slide-in-from-top-4">
-                  <div className="flex items-center gap-4">
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <div className="mt-12 text-red-600 bg-red-50 p-12 rounded-[3rem] text-sm text-center font-black uppercase tracking-[0.2em] border-2 border-red-100 flex flex-col items-center justify-center gap-6 animate-in slide-in-from-top-4">
+                  <div className="flex items-center gap-6">
+                    <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <span>{error}</span>
                   </div>
-                  <button onClick={handleEvaluate} className="px-6 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors">Retry Search</button>
+                  <button onClick={handleEvaluate} className="px-10 py-3 bg-red-600 text-white rounded-[2rem] hover:bg-red-700 transition-all shadow-xl font-black uppercase text-[10px] tracking-widest">Re-Execute Protocol</button>
                 </div>
               )}
             </div>
           </div>
-          <div className="bg-treebo-brown px-12 py-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.5em]">Enterprise Strategic Intelligence Layer Active</p>
-            <div className="flex gap-6 items-center">
-              <span className="w-3 h-3 rounded-full bg-treebo-orange animate-ping"></span>
-              <span className="text-[10px] text-white font-black uppercase tracking-widest">Model: Gemini 3 Flash Optima</span>
+          <div className="bg-treebo-brown px-16 py-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+            <p className="text-[11px] text-white/40 font-black uppercase tracking-[0.6em]">Enterprise Strategic Intelligence Active</p>
+            <div className="flex gap-8 items-center">
+              <span className="w-4 h-4 rounded-full bg-treebo-orange animate-ping shadow-[0_0_15px_rgba(188,77,46,0.8)]"></span>
+              <span className="text-[11px] text-white font-black uppercase tracking-widest">Decision Engine: Gemini 3 Flash Optima</span>
             </div>
           </div>
         </div>
