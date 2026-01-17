@@ -25,6 +25,11 @@ export interface GuestReviewPlatform {
   platform: string;
   positive: string[];
   negative: string[];
+  sentimentScore: number; // 0-100, where 100 is perfect
+  recurringThemes: {
+    theme: string;
+    impact: 'positive' | 'negative' | 'neutral';
+  }[];
 }
 
 export enum OTAStatus {

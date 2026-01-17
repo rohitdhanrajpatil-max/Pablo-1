@@ -23,6 +23,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ hotelName?: boolean; city?: boolean }>({});
   const [comparisonMetric, setComparisonMetric] = useState<'adr' | 'rating'>('rating');
+  const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [shareFeedback, setShareFeedback] = useState(false);
   
   const reportRef = useRef<HTMLDivElement>(null);
@@ -74,6 +75,7 @@ const App: React.FC = () => {
     try {
       const evaluation = await evaluateHotel(hotelName, city, reportType);
       setResult(evaluation);
+      setCategoryFilter('All'); // Reset filter on new evaluation
       
       try {
         const url = new URL(window.location.href);
@@ -98,6 +100,7 @@ const App: React.FC = () => {
     setCity('');
     setError(null);
     setFieldErrors({});
+    setCategoryFilter('All');
     
     try {
       window.history.pushState({}, '', window.location.pathname);
@@ -145,11 +148,18 @@ const App: React.FC = () => {
     const filename = `Treebo_Audit_${result.executiveSummary.hotelName.replace(/\s+/g, '_')}_${result.executiveSummary.city}.pdf`;
     
     const opt = {
-      margin: 10,
+      margin: [10, 10, 10, 10],
       filename: filename,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { 
+        scale: 3, 
+        useCORS: true, 
+        logging: false,
+        letterRendering: true,
+        windowWidth: 1200 // Lock width for consistent high-quality capture
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     html2pdf().set(opt).from(element).save().then(() => {
@@ -160,6 +170,18 @@ const App: React.FC = () => {
     });
   };
 
+  const availableCategories = useMemo(() => {
+    if (!result?.competitors) return ['All'];
+    const categories = Array.from(new Set(result.competitors.map(c => c.category)));
+    return ['All', ...categories];
+  }, [result]);
+
+  const filteredCompetitors = useMemo(() => {
+    if (!result?.competitors) return [];
+    if (categoryFilter === 'All') return result.competitors;
+    return result.competitors.filter(c => c.category === categoryFilter);
+  }, [result, categoryFilter]);
+
   const chartData = useMemo(() => {
     if (!result) return [];
     const target = {
@@ -168,18 +190,18 @@ const App: React.FC = () => {
       adr: result.targetHotelMetrics?.estimatedADR || 0,
       isTarget: true
     };
-    const others = (result.competitors || []).map(c => ({
+    const others = filteredCompetitors.map(c => ({
       name: c.name,
       rating: c.otaRating,
-      adr: parseFloat(c.estimatedADR.replace(/[^0-9.]/g, '')) || 0,
+      adr: parseFloat(String(c.estimatedADR).replace(/[^0-9.]/g, '')) || 0,
       isTarget: false
     }));
     return [target, ...others];
-  }, [result]);
+  }, [result, filteredCompetitors]);
 
   const sortedOtaAudit = useMemo(() => {
     if (!result?.otaAudit) return [];
-    const order = ['makemytrip', 'mmt', 'booking.com', 'booking', 'goibibo', 'google maps', 'google'];
+    const order = ['treebo.com', 'treebo', 'makemytrip', 'mmt', 'booking.com', 'booking', 'agoda', 'goibibo', 'google maps', 'google'];
     return [...result.otaAudit].sort((a, b) => {
       const aName = a.platform.toLowerCase();
       const bName = b.platform.toLowerCase();
@@ -194,7 +216,8 @@ const App: React.FC = () => {
 
   const maxVal = useMemo(() => {
     if (comparisonMetric === 'rating') return 5;
-    return Math.max(...chartData.map(d => d.adr), 1);
+    const maxAdr = Math.max(...chartData.map(d => d.adr), 1);
+    return maxAdr;
   }, [chartData, comparisonMetric]);
 
   if (result) {
@@ -217,42 +240,15 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <div ref={reportRef} className="pdf-content space-y-12">
-            <div className="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden relative">
+          <div ref={reportRef} className="pdf-export-container space-y-10 bg-transparent">
+            <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden relative avoid-page-break shadow-sm">
               <div className={`h-2 w-full ${isHealthReport ? 'bg-teal-500' : 'bg-treebo-orange'}`}></div>
-              <div className="p-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+              <div className="p-8 md:p-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                   <div className="space-y-4 lg:col-span-1">
-                    <div className="flex items-center justify-between no-print">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Commercial Asset</p>
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={handleShare}
-                          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-treebo-brown transition-all group shadow-sm"
-                        >
-                          <svg className={`w-3.5 h-3.5 transition-transform ${shareFeedback ? 'scale-0' : 'group-hover:scale-110'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                          </svg>
-                          {shareFeedback ? (
-                            <span className="text-green-400 animate-in fade-in zoom-in-90">Copied!</span>
-                          ) : (
-                            <span>Share Strategy</span>
-                          )}
-                        </button>
-                        <button 
-                          onClick={handleExportPDF}
-                          disabled={exporting}
-                          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-treebo-orange/10 border border-treebo-orange/20 text-[10px] font-black text-treebo-orange uppercase tracking-widest hover:bg-treebo-orange hover:text-white transition-all group disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                        >
-                          <svg className={`w-3.5 h-3.5 transition-all ${exporting ? 'animate-bounce' : 'group-hover:translate-y-0.5'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                          </svg>
-                          {exporting ? 'Generating...' : 'Export PDF'}
-                        </button>
-                      </div>
-                    </div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Commercial Audit Report</p>
                     <div>
-                      <h2 className="text-4xl font-black text-treebo-brown leading-none tracking-tighter mb-2">{result.executiveSummary.hotelName}</h2>
+                      <h2 className="text-4xl md:text-5xl font-black text-treebo-brown leading-none tracking-tighter mb-2">{result.executiveSummary.hotelName}</h2>
                       <div className="flex items-center gap-1.5 text-treebo-orange uppercase font-black text-xs tracking-widest">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         {result.executiveSummary.city}
@@ -269,33 +265,48 @@ const App: React.FC = () => {
                       <span className={`text-6xl font-black tracking-tighter ${result.executiveSummary.averageScore >= 7 ? 'text-green-600' : result.executiveSummary.averageScore >= 5 ? 'text-amber-600' : 'text-red-600'}`}>
                         {result.executiveSummary.averageScore.toFixed(1)}
                       </span>
-                      <span className="text-slate-300 text-xl font-black">/10</span>
+                      <span className="text-slate-300 text-2xl font-black">/10</span>
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Strategic Insight</p>
-                    <p className="text-slate-500 text-xs font-bold leading-relaxed pt-1 italic">
-                      AI-Driven Micro-Market auditing completed for this asset.
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Report Controls</p>
+                    <div className="flex flex-wrap gap-2 no-print">
+                        <button 
+                          onClick={handleShare}
+                          className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-treebo-brown transition-all group shadow-sm"
+                        >
+                          {shareFeedback ? 'URL COPIED' : 'SHARE STRATEGY'}
+                        </button>
+                        <button 
+                          onClick={handleExportPDF}
+                          disabled={exporting}
+                          className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-treebo-orange/10 border border-treebo-orange/20 text-[10px] font-black text-treebo-orange uppercase tracking-widest hover:bg-treebo-orange hover:text-white transition-all group shadow-sm"
+                        >
+                          {exporting ? 'GENERATING...' : 'EXPORT PDF'}
+                        </button>
+                    </div>
+                    <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-2">
+                      Ref: {Math.random().toString(36).substring(7).toUpperCase()} / {new Date().toLocaleTimeString()}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <section className="space-y-6">
+            <section className="space-y-6 avoid-page-break">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
                 OTA Performance Audit
                 <div className="h-px bg-slate-200 flex-grow"></div>
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                {sortedOtaAudit.map((audit, idx) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                {(sortedOtaAudit || []).map((audit, idx) => (
                   <OTAAuditCard key={idx} audit={audit} />
                 ))}
               </div>
             </section>
 
             {result.roomTypeAudit && result.roomTypeAudit.length > 0 && (
-              <section className="space-y-6">
+              <section className="space-y-6 page-break-before">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
                   Room Type Detailed Audit
                   <div className="h-px bg-slate-200 flex-grow"></div>
@@ -304,10 +315,9 @@ const App: React.FC = () => {
               </section>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 avoid-page-break">
                 {result.treeboPresence && (
-                  <section className="space-y-6 h-full">
+                  <section className="space-y-4">
                     <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
                       Treebo Network Synergy
                       <div className="h-px bg-slate-200 flex-grow"></div>
@@ -315,211 +325,238 @@ const App: React.FC = () => {
                     <TreeboPresenceSection presence={result.treeboPresence} />
                   </section>
                 )}
-              </div>
-              <div className="lg:col-span-1">
-                <section className="space-y-6 h-full">
+                
+                <section className="space-y-4 avoid-page-break">
                   <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
                     Validation Protocols
                     <div className="h-px bg-slate-200 flex-grow"></div>
                   </h3>
                   <ProtocolStatusCard status={result.protocolStatus} />
                 </section>
-              </div>
             </div>
 
             {result.competitors && result.competitors.length > 0 && (
-              <section className="space-y-8">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
-                  Micro-Market Competition & Comparison
-                  <div className="h-px bg-slate-200 flex-grow"></div>
-                </h3>
+              <section className="space-y-8 page-break-before">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4 flex-grow">
+                    Micro-Market Competition & Benchmarking
+                    <div className="h-px bg-slate-200 flex-grow"></div>
+                  </h3>
+                  <div className="flex items-center gap-3 no-print overflow-x-auto pb-2 sm:pb-0">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Filter Category:</span>
+                    <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+                      {availableCategories.map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => setCategoryFilter(cat)}
+                          className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${categoryFilter === cat ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  <div className="lg:col-span-2 bg-white rounded-[2rem] shadow-sm border border-slate-200 p-8">
+                  <div className="lg:col-span-2 bg-white rounded-[2rem] border border-slate-200 p-8 md:p-12 avoid-page-break shadow-sm">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
                       <div>
-                        <h4 className="text-treebo-brown font-black uppercase text-xs tracking-widest">Head-to-Head Benchmarking</h4>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Visualizing Competitive Standing</p>
+                        <h4 className="text-treebo-brown font-black uppercase text-xs tracking-widest">Benchmarking Data Visualization</h4>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Direct Head-to-Head Comparison</p>
                       </div>
                       <div className="inline-flex bg-slate-100 p-1.5 rounded-2xl no-print">
-                        <button onClick={() => setComparisonMetric('rating')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${comparisonMetric === 'rating' ? 'bg-treebo-brown text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>OTA Rating</button>
-                        <button onClick={() => setComparisonMetric('adr')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${comparisonMetric === 'adr' ? 'bg-treebo-orange text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>Est. ADR</button>
+                        <button onClick={() => setComparisonMetric('rating')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${comparisonMetric === 'rating' ? 'bg-treebo-brown text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>OTA Rating</button>
+                        <button onClick={() => setComparisonMetric('adr')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${comparisonMetric === 'adr' ? 'bg-treebo-orange text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>Est. ADR</button>
                       </div>
                     </div>
 
                     <div className="space-y-6">
-                      {chartData.map((data, idx) => {
+                      {(chartData || []).map((data, idx) => {
                         const val = comparisonMetric === 'rating' ? data.rating : data.adr;
                         const percentage = (val / maxVal) * 100;
                         return (
                           <div key={idx} className="space-y-2">
-                            <div className="flex justify-between items-end px-1">
-                              <span className={`text-[10px] font-black uppercase tracking-widest ${data.isTarget ? 'text-treebo-orange' : 'text-slate-500'}`}>
-                                {data.name}
-                              </span>
-                              <span className="text-xs font-black text-treebo-brown">
-                                {comparisonMetric === 'adr' ? `${result.targetHotelMetrics?.adrCurrency || 'INR'} ${val}` : `${val}/5`}
-                              </span>
+                            <div className="flex justify-between px-1">
+                              <span className={`text-[10px] font-black uppercase tracking-widest ${data.isTarget ? 'text-treebo-orange' : 'text-slate-500'}`}>{data.name}</span>
+                              <span className="text-xs font-black text-treebo-brown">{comparisonMetric === 'adr' ? `${result.targetHotelMetrics?.adrCurrency || 'INR'} ${val}` : `${val}/5`}</span>
                             </div>
-                            <div className="h-6 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                              <div 
-                                className={`h-full transition-all duration-1000 ease-out flex items-center justify-end px-4 ${data.isTarget ? (comparisonMetric === 'adr' ? 'bg-treebo-orange' : 'bg-treebo-brown') : 'bg-slate-200'}`}
-                                style={{ width: `${percentage}%` }}
-                              >
-                                {percentage > 15 && <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-pulse"></div>}
-                              </div>
+                            <div className="h-6 w-full bg-slate-50 rounded-full border border-slate-100 overflow-hidden">
+                              <div className={`h-full transition-all duration-1000 ease-out ${data.isTarget ? (comparisonMetric === 'adr' ? 'bg-treebo-orange' : 'bg-treebo-brown') : 'bg-slate-200'}`} style={{ width: `${percentage}%` }}></div>
                             </div>
                           </div>
                         );
                       })}
+                      {chartData.length <= 1 && (
+                        <div className="py-10 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest border border-dashed border-slate-200 rounded-2xl">
+                          No competitors found in this category.
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  <div className="lg:col-span-1 bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-                    <div className="p-6 border-b border-slate-100 bg-slate-50">
-                      <h4 className="text-treebo-brown font-black uppercase text-[10px] tracking-widest">Nearby Players</h4>
+                  <div className="lg:col-span-1 bg-white rounded-[2rem] border border-slate-200 overflow-hidden avoid-page-break shadow-sm flex flex-col">
+                    <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                      <h4 className="text-treebo-brown font-black uppercase text-[10px] tracking-widest">Competitive Mapping</h4>
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{filteredCompetitors.length} ASSETS</span>
                     </div>
-                    <div className="divide-y divide-slate-50 overflow-y-auto max-h-[400px]">
-                      {result.competitors.map((comp, idx) => (
-                        <div key={idx} className="p-6 hover:bg-slate-50 transition-all group">
+                    <div className="divide-y divide-slate-50 overflow-y-auto max-h-[600px]">
+                      {filteredCompetitors.length > 0 ? filteredCompetitors.map((comp, idx) => (
+                        <div key={idx} className="p-6 hover:bg-slate-50 transition-colors">
                           <div className="flex justify-between items-start mb-2">
-                            <p className="text-xs font-black text-treebo-brown uppercase tracking-tight group-hover:text-treebo-orange transition-colors">{comp.name}</p>
+                            <p className="text-xs font-black text-treebo-brown uppercase tracking-tight">{comp.name}</p>
                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{comp.distance}</span>
                           </div>
-                          <div className="flex items-center gap-3">
-                             <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[9px] font-black uppercase tracking-widest">{comp.category}</span>
-                             <div className="flex items-center gap-1">
-                               <span className="text-xs font-black text-slate-700">{comp.otaRating}</span>
-                               <svg className="w-3 h-3 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                          <div className="flex justify-between items-center">
+                             <div className="flex items-center gap-3">
+                                <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[9px] font-black uppercase tracking-widest">{comp.category}</span>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs font-black text-slate-700">{comp.otaRating}</span>
+                                  <svg className="w-3 h-3 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                                </div>
                              </div>
-                             <span className="text-xs font-black text-treebo-orange ml-auto">{comp.estimatedADR}</span>
+                             <span className="text-xs font-black text-treebo-orange">{comp.estimatedADR}</span>
                           </div>
                         </div>
+                      )) : (
+                        <div className="p-12 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest italic">
+                          No matching competitors.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 avoid-page-break">
+                  <div className="bg-white rounded-[2rem] border border-slate-200 p-10 shadow-sm">
+                    <h4 className="text-treebo-brown font-black uppercase text-xs tracking-widest mb-8 flex items-center gap-3">
+                       <div className="w-1.5 h-6 bg-treebo-brown rounded-full"></div> 
+                       Market Demand Drivers
+                    </h4>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {(result.topCorporates || []).map((corp, i) => (
+                        <li key={i} className="flex items-center gap-3 px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 text-xs font-black text-slate-700 hover:bg-white hover:shadow-md transition-all">
+                          <span className="w-6 h-6 flex items-center justify-center bg-white rounded text-[10px] font-black text-treebo-brown border border-slate-200">{i+1}</span>
+                          {corp}
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   </div>
-                </div>
-              </section>
-            )}
-
-            {(result.topCorporates || result.topTravelAgents) && (
-              <section className="space-y-6">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
-                  Regional Demand Landscape
-                  <div className="h-px bg-slate-200 flex-grow"></div>
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {result.topCorporates && (
-                    <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-10">
-                      <div className="flex items-center gap-4 mb-8">
-                        <div className="w-10 h-10 bg-treebo-brown rounded-xl flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h4 className="text-treebo-brown font-black uppercase text-xs tracking-widest">Primary Corporate Drivers</h4>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Top 5 Entities</p>
-                        </div>
-                      </div>
-                      <ul className="space-y-4">
-                        {result.topCorporates.map((corp, i) => (
-                          <li key={i} className="flex items-center gap-5 px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100 text-sm font-black text-slate-700 transition-all hover:bg-white hover:shadow-md">
-                            <span className="w-8 h-8 flex items-center justify-center bg-white rounded-lg text-[10px] font-black text-treebo-brown border border-slate-200 shadow-sm">{i + 1}</span>
-                            {corp}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {result.topTravelAgents && (
-                    <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-10">
-                      <div className="flex items-center gap-4 mb-8">
-                        <div className="w-10 h-10 bg-treebo-orange rounded-xl flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h4 className="text-treebo-orange font-black uppercase text-xs tracking-widest">Travel & DMC Partners</h4>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Top 5 Local Agencies</p>
-                        </div>
-                      </div>
-                      <ul className="space-y-4">
-                        {result.topTravelAgents.map((agent, i) => (
-                          <li key={i} className="flex items-center gap-5 px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100 text-sm font-black text-slate-700 transition-all hover:bg-white hover:shadow-md">
-                            <span className="w-8 h-8 flex items-center justify-center bg-white rounded-lg text-[10px] font-black text-treebo-orange border border-slate-200 shadow-sm">{i + 1}</span>
-                            {agent}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </section>
-            )}
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {result.guestReviews && (
-                <div className="bg-slate-900 text-white rounded-[2.5rem] p-10 shadow-2xl border border-slate-800 lg:col-span-2">
-                  <div className="flex items-center gap-4 mb-10">
-                    <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-treebo-orange">
-                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>
-                    </div>
-                    <h3 className="font-black uppercase text-xs tracking-[0.3em] text-white/50">Guest Sentiment Index</h3>
+                  <div className="bg-white rounded-[2rem] border border-slate-200 p-10 shadow-sm">
+                    <h4 className="text-treebo-orange font-black uppercase text-xs tracking-widest mb-8 flex items-center gap-3">
+                       <div className="w-1.5 h-6 bg-treebo-orange rounded-full"></div> 
+                       Regional Partnership Hub
+                    </h4>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {(result.topTravelAgents || []).map((agent, i) => (
+                        <li key={i} className="flex items-center gap-3 px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 text-xs font-black text-slate-700 hover:bg-white hover:shadow-md transition-all">
+                          <span className="w-6 h-6 flex items-center justify-center bg-white rounded text-[10px] font-black text-treebo-orange border border-slate-200">{i+1}</span>
+                          {agent}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {result.guestReviews.map((rev, i) => (
-                      <div key={i} className="bg-white/5 rounded-3xl p-6 border border-white/5 space-y-5 transition-all hover:bg-white/10">
-                        <p className="text-[10px] font-black text-treebo-orange uppercase tracking-[0.3em] border-b border-white/5 pb-3">{rev.platform}</p>
-                        <div className="space-y-5">
-                          <div className="space-y-2">
-                            <p className="text-[10px] font-black text-green-500 uppercase tracking-widest">Positive Alpha</p>
-                            {rev.positive.map((p, j) => <p key={j} className="text-xs font-bold text-white/70 leading-snug">• {p}</p>)}
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Critical Gaps</p>
-                            {rev.negative.map((n, j) => <p key={j} className="text-xs font-bold text-white/70 leading-snug">• {n}</p>)}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2"><ScoreCard data={result.scorecard} /></div>
-              <div className="space-y-8">
-                <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-10 space-y-8">
-                  <h4 className="text-treebo-brown font-black uppercase text-xs tracking-[0.3em] flex items-center gap-3">
-                    <span className="w-2 h-8 bg-red-600 rounded-full"></span> Priority Risk Mitigation
-                  </h4>
-                  <ul className="space-y-6">
-                    {result.keyRisks.map((risk, i) => (
-                      <li key={i} className="flex gap-4 text-xs font-black text-slate-700 leading-relaxed border-b border-slate-50 pb-6 last:border-0">
-                        <span className="text-red-600 font-black">!!</span> {risk}
-                      </li>
+            {result.guestReviews && (
+                <section className="avoid-page-break space-y-6">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
+                    Guest Sentiment & Quality Index
+                    <div className="h-px bg-slate-200 flex-grow"></div>
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {(result.guestReviews || []).map((rev, i) => (
+                      <div key={i} className="bg-slate-900 text-white rounded-[2.5rem] p-10 space-y-8 border border-white/5 hover:bg-slate-800 transition-colors shadow-2xl relative overflow-hidden group">
+                        {/* Sentiment Score indicator */}
+                        <div className="absolute top-0 right-0 p-8">
+                          <div className={`w-16 h-16 rounded-full border-4 flex items-center justify-center font-black text-sm tracking-tighter ${rev.sentimentScore >= 70 ? 'border-green-500 text-green-400' : rev.sentimentScore >= 40 ? 'border-amber-500 text-amber-400' : 'border-red-500 text-red-400'}`}>
+                            {rev.sentimentScore}%
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-black text-treebo-orange uppercase tracking-[0.4em] border-b border-white/10 pb-4">{rev.platform}</p>
+                          <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest pt-2">Algorithmic Sentiment Score</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-4">
+                                <p className="text-[9px] font-black text-green-500 uppercase tracking-widest flex items-center gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> 
+                                  Key Satisfiers
+                                </p>
+                                <div className="space-y-3">
+                                  {(rev.positive || []).map((p, j) => (
+                                    <p key={j} className="text-xs font-bold text-white/70 leading-snug flex gap-2">
+                                      <span className="text-green-500/50">•</span> {p}
+                                    </p>
+                                  ))}
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                <p className="text-[9px] font-black text-red-500 uppercase tracking-widest flex items-center gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                  Friction Points
+                                </p>
+                                <div className="space-y-3">
+                                  {(rev.negative || []).map((n, j) => (
+                                    <p key={j} className="text-xs font-bold text-white/70 leading-snug flex gap-2">
+                                      <span className="text-red-500/50">•</span> {n}
+                                    </p>
+                                  ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Recurring Themes */}
+                        {rev.recurringThemes && rev.recurringThemes.length > 0 && (
+                          <div className="pt-8 border-t border-white/10">
+                            <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-4">Recurring Themes Identification</p>
+                            <div className="flex flex-wrap gap-2">
+                              {rev.recurringThemes.map((theme, idx) => (
+                                <span key={idx} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ${theme.impact === 'positive' ? 'bg-green-500/10 border-green-500/30 text-green-400' : theme.impact === 'negative' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-white/5 border-white/10 text-white/60'}`}>
+                                  {theme.theme}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     ))}
-                  </ul>
-                </div>
-                <div className="bg-treebo-orange text-white rounded-[2rem] p-10 shadow-2xl border-l-[12px] border-treebo-brown ring-1 ring-white/10">
-                  <h4 className="text-white/60 font-black text-[10px] uppercase tracking-[0.4em] mb-4">Leadership Final Recommendation</h4>
-                  <p className="text-white leading-snug font-black text-lg italic tracking-tight">"{result.finalRecommendation}"</p>
-                </div>
-                {result.groundingSources && (
-                  <div className="p-6 bg-slate-900 rounded-[2rem] border border-white/5 no-print">
-                    <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-4">Audit Traceability</p>
-                    <div className="flex flex-wrap gap-2">
-                      {result.groundingSources.slice(0, 5).map((s, i) => (
-                        <a key={i} href={s.uri} target="_blank" className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-treebo-orange hover:bg-treebo-orange hover:text-white transition-all truncate max-w-[140px]">{s.title}</a>
-                      ))}
-                    </div>
                   </div>
-                )}
+                </section>
+            )}
+
+            <section className="page-break-before space-y-12 pb-20">
+              <div className="avoid-page-break">
+                <ScoreCard data={result.scorecard || []} />
               </div>
-            </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 avoid-page-break">
+                <div className="lg:col-span-2 bg-white rounded-[2rem] border border-slate-200 p-10 space-y-8 shadow-sm">
+                  <h4 className="text-treebo-brown font-black uppercase text-xs tracking-widest flex items-center gap-4">
+                    <span className="w-2 h-8 bg-red-600 rounded-full"></span> Priority Risk Mitigation Audit
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                    {(result.keyRisks || []).map((risk, i) => (
+                      <div key={i} className="text-xs font-black text-slate-700 leading-relaxed flex gap-3 pb-4 border-b border-slate-50 last:border-0">
+                        <span className="text-red-600 font-black">!!</span> {risk}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="lg:col-span-1 bg-treebo-brown text-white rounded-[2.5rem] p-10 flex flex-col justify-center border-l-[16px] border-treebo-orange shadow-2xl">
+                  <h4 className="text-white/40 font-black text-[10px] uppercase tracking-[0.4em] mb-6">Leadership Final Verdict</h4>
+                  <p className="text-white font-black text-xl italic leading-snug tracking-tight">"{result.finalRecommendation}"</p>
+                  <div className="mt-8 pt-8 border-t border-white/10 flex justify-between items-center">
+                    <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Strategic Asset Evaluation</span>
+                    <div className="w-8 h-8 bg-treebo-orange rounded-lg shadow-inner"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
       </Layout>

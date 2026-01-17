@@ -47,10 +47,21 @@
           .no-print { display: none !important; }
         }
         
-        /* Ensure PDF capture doesn't cut off cards */
-        .pdf-content {
-          background-color: #f8fafc;
-          padding: 20px;
+        .pdf-export-container {
+          width: 100%;
+          max-width: 100%;
+          margin: 0 auto;
+          background-color: #ffffff;
+        }
+
+        .avoid-page-break {
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+
+        .page-break-before {
+          break-before: page;
+          page-break-before: always;
         }
     </style>
 <script type="importmap">

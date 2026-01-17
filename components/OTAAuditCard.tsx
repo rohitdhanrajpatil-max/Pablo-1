@@ -17,7 +17,15 @@ const OTAAuditCard: React.FC<Props> = ({ audit }) => {
   };
 
   const getPlatformBranding = (name: string) => {
-    const n = name.toLowerCase();
+    const n = (name || '').toLowerCase();
+    if (n.includes('treebo.com') || n.includes('treebo')) {
+      return { 
+        name: 'treebo.com', 
+        accent: 'border-t-treebo-orange', 
+        iconColor: 'text-treebo-orange',
+        icon: 'TH'
+      };
+    }
     if (n.includes('makemytrip') || n.includes('mmt')) {
       return { 
         name: 'MakeMyTrip', 
@@ -32,6 +40,14 @@ const OTAAuditCard: React.FC<Props> = ({ audit }) => {
         accent: 'border-t-blue-600', 
         iconColor: 'text-blue-700',
         icon: 'B.'
+      };
+    }
+    if (n.includes('agoda')) {
+      return { 
+        name: 'Agoda', 
+        accent: 'border-t-blue-400', 
+        iconColor: 'text-blue-500',
+        icon: 'Ag'
       };
     }
     if (n.includes('goibibo')) {
@@ -50,10 +66,12 @@ const OTAAuditCard: React.FC<Props> = ({ audit }) => {
         icon: 'G'
       };
     }
-    return { name, accent: 'border-t-slate-300', iconColor: 'text-slate-400', icon: '?' };
+    return { name: name || 'Platform', accent: 'border-t-slate-300', iconColor: 'text-slate-400', icon: '?' };
   };
 
   const branding = getPlatformBranding(audit.platform);
+  const blockers = audit.channelBlockers || [];
+  const recovery = audit.recoveryPlan || [];
 
   return (
     <div className={`bg-white rounded-3xl border border-slate-100 border-t-4 ${branding.accent} shadow-sm p-6 flex flex-col h-full hover:shadow-lg transition-all transform hover:-translate-y-1`}>
@@ -87,12 +105,14 @@ const OTAAuditCard: React.FC<Props> = ({ audit }) => {
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Channel Blockers</p>
           </div>
           <ul className="space-y-2.5 ml-1">
-            {audit.channelBlockers.map((blocker, i) => (
+            {blockers.length > 0 ? blockers.map((blocker, i) => (
               <li key={i} className="flex gap-2.5 text-xs font-bold text-slate-600 leading-snug">
                 <span className="text-orange-500">•</span>
                 {blocker}
               </li>
-            ))}
+            )) : (
+              <li className="text-[10px] text-slate-400 italic font-medium">No major blockers identified.</li>
+            )}
           </ul>
         </div>
 
@@ -102,12 +122,14 @@ const OTAAuditCard: React.FC<Props> = ({ audit }) => {
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recovery Strategy</p>
           </div>
           <ul className="space-y-2.5 ml-1">
-            {audit.recoveryPlan.map((step, i) => (
+            {recovery.length > 0 ? recovery.map((step, i) => (
               <li key={i} className="flex gap-2.5 text-xs font-black text-treebo-brown italic leading-snug">
                 <span className="text-treebo-orange">→</span>
                 {step}
               </li>
-            ))}
+            )) : (
+              <li className="text-[10px] text-slate-400 italic font-medium">Strategy already optimized.</li>
+            )}
           </ul>
         </div>
       </div>

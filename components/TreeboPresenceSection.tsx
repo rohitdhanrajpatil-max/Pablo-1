@@ -13,6 +13,12 @@ const TreeboPresenceSection: React.FC<Props> = ({ presence }) => {
       <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-treebo-orange/10 rounded-full blur-3xl transition-all group-hover:scale-110 duration-1000"></div>
       <div className="absolute -left-10 -top-10 w-48 h-48 bg-white/5 rounded-full blur-2xl"></div>
 
+      {/* Live Badge */}
+      <div className="absolute top-8 right-10 flex items-center gap-2 px-3 py-1 bg-green-500/20 rounded-full border border-green-500/30">
+        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+        <span className="text-[9px] font-black uppercase tracking-widest text-green-400">Live Domain Audit</span>
+      </div>
+
       <div className="relative z-10 flex flex-col lg:flex-row gap-12 lg:items-center">
         {/* Left Side: Brand & Source */}
         <div className="space-y-6 lg:w-1/3 border-b lg:border-b-0 lg:border-r border-white/10 pb-8 lg:pb-0 lg:pr-12">
@@ -23,15 +29,18 @@ const TreeboPresenceSection: React.FC<Props> = ({ presence }) => {
               <div className="bg-white text-treebo-brown">V</div>
             </div>
             <div>
-              <h3 className="font-black uppercase text-sm tracking-[0.2em] text-white">Treebo Ecosystem</h3>
-              <p className="text-[10px] font-black text-treebo-orange uppercase tracking-widest mt-0.5">Regional Synergy Hub</p>
+              <h3 className="font-black uppercase text-sm tracking-[0.2em] text-white">Network Synergy</h3>
+              <p className="text-[10px] font-black text-treebo-orange uppercase tracking-widest mt-0.5">Live Ecosystem Check</p>
             </div>
           </div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/10">
-            <svg className="w-3 h-3 text-treebo-orange" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <span className="text-[9px] font-black uppercase tracking-[0.1em] text-white/60">Verified via treebo.com</span>
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/10">
+              <svg className="w-3 h-3 text-treebo-orange" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="text-[9px] font-black uppercase tracking-[0.1em] text-white/60">Audit: treebo.com</span>
+            </div>
+            <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em] ml-1">Real-time Count Verification</p>
           </div>
         </div>
 
@@ -39,22 +48,24 @@ const TreeboPresenceSection: React.FC<Props> = ({ presence }) => {
         <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-10">
           <div className="space-y-4">
             <div className="flex flex-col">
-              <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-2">City-Wide Saturation</span>
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-2">Verified Hotel Count</span>
               <div className="flex items-baseline gap-3">
                 <span className="text-7xl font-black text-white tracking-tighter leading-none">{presence.cityHotelCount}</span>
-                <span className="text-xl font-black text-treebo-orange uppercase tracking-widest">Active Hotels</span>
+                <span className="text-xl font-black text-treebo-orange uppercase tracking-widest">Assets</span>
               </div>
-              <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-2 italic">Operating in current micro-market</p>
+              <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-2 italic">Active listings in current city</p>
             </div>
           </div>
 
           <div className="space-y-4">
             <div className="flex flex-col">
-              <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-2">Primary Proximity Asset</span>
-              <p className="text-xl font-black text-white leading-tight uppercase tracking-tight">{presence.nearestHotelName}</p>
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-2">Closest Network Node</span>
+              <p className="text-xl font-black text-white leading-tight uppercase tracking-tight truncate max-w-[280px]" title={presence.nearestHotelName}>
+                {presence.nearestHotelName}
+              </p>
               <div className="flex items-center gap-2 mt-2">
-                <span className="px-2 py-0.5 bg-treebo-orange text-white text-[10px] font-black rounded uppercase tracking-widest">~ {presence.nearestHotelDistance}</span>
-                <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Travel Radius</span>
+                <span className="px-2 py-0.5 bg-treebo-orange text-white text-[10px] font-black rounded uppercase tracking-widest">Dist: {presence.nearestHotelDistance}</span>
+                <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Network Radius</span>
               </div>
             </div>
           </div>
@@ -64,7 +75,7 @@ const TreeboPresenceSection: React.FC<Props> = ({ presence }) => {
               <svg className="w-4 h-4 text-treebo-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em]">Market Share Insight</span>
+              <span className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em]">Commercial Synergy Impact</span>
             </div>
             <p className="text-lg font-bold text-white/90 leading-relaxed italic tracking-tight">
               "{presence.marketShareContext}"
