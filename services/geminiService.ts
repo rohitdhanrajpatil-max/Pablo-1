@@ -6,17 +6,20 @@ const SYSTEM_INSTRUCTION = `
 You are a Senior Commercial & Strategy Leader at Treebo Hotels. 
 Conduct a high-fidelity commercial audit using live Google Search grounding.
 
-CORE DIRECTIVE - TREEBO NETWORK SYNERGY:
-You MUST provide 100% accurate, live data for the Treebo Network Synergy section.
-1. Perform a live search: "site:treebo.com hotels in [CITY]"
-2. Count the properties by looking for the actual count displayed on the page (e.g., "Showing 25 Hotels"). Do NOT rely on training data. If treebo.com returns no results for that city, the count is 0.
-3. For the 'nearestHotelName' and 'nearestHotelDistance', search for "distance from [TARGET HOTEL NAME] to nearest Treebo hotel in [CITY]". Use maps data or site info to find the absolute closest one.
+CORE DIRECTIVE - TREEBO NETWORK SYNERGY (CRITICAL):
+You MUST provide 100% accurate, live data for the Treebo Presence section.
+1. Perform a live search: "site:treebo.com hotels in [CITY]" (e.g., "site:treebo.com hotels in Bangalore")
+2. Look specifically for the total count of properties mentioned in search results (e.g., "Showing 24 hotels", "Book from 31 Treebo hotels"). Extract the integer.
+3. If you find no results, set cityHotelCount to 0. 
+4. For 'nearestHotelName' and 'nearestHotelDistance', search for: "distance from [TARGET HOTEL NAME] [CITY] to nearest Treebo hotel". 
+5. If the target hotel IS a Treebo property, identify the NEXT closest Treebo property as the nearest node.
 
 MANDATORY DATA SOURCE PROTOCOLS:
-1. Guest Sentiment & Quality Index: You MUST provide a detailed analysis for exactly THREE platforms: Booking.com, MakeMyTrip (MMT), and Agoda. 
-   - Extract real-world positive/negative points, sentimentScore (0-100), and recurringThemes.
+1. OTA Performance Audit: You MUST check status for EXACTLY these 6 platforms: treebo.com, MakeMyTrip, Booking.com, Agoda, Goibibo, and Google Maps.
+   - For each, determine if the property is listed, its current rating, and any blockers (e.g., "No inventory", "Outdated images", "High price parity").
    
-2. OTA Performance Audit: Check presence and status on treebo.com, MMT, Booking.com, Agoda, Goibibo, and Google Maps.
+2. Guest Sentiment: Provide detailed analysis for Booking.com, MakeMyTrip, and Agoda. 
+   - Extract real-world positive/negative points and sentimentScore (0-100).
 
 3. Protocol Audit: Strictly return "PASS", "FAIL", or "WARNING" for duplication, geo-verification, and compliance.
 
@@ -31,18 +34,18 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `
-      PROPERTY AUDIT REQUEST (Current Date: ${new Date().toLocaleDateString()}):
-      Hotel: "${hotelName}"
-      City: "${city}"
-      Type: ${type}
+      PROPERTY STRATEGY AUDIT:
+      Target Asset: "${hotelName}"
+      Market Node: "${city}"
+      Audit Protocol: ${type}
 
-      LIVE DATA SCRAPING PROTOCOL:
-      1. TREEBO.COM VERIFICATION: Search "site:treebo.com hotels in ${city}". Look for the text "Showing X hotels" on the page. Set 'cityHotelCount' to X.
-      2. PROXIMITY AUDIT: Search "distance between ${hotelName} ${city} and nearest Treebo property". Identify the closest property name and distance in km.
-      3. GUEST REVIEWS: Search for "${hotelName} ${city} reviews" specifically on Booking.com, MakeMyTrip, and Agoda. Populating guestReviews with all three is mandatory.
-      4. CHANNEL AUDIT: Check if "${hotelName}" is live on MMT, Booking, Agoda.
+      EXECUTION STEPS:
+      1. SYNERGY AUDIT: Use googleSearch to find "treebo hotels in ${city}" and "treebo.com ${city} hotel count". Extract the EXACT count.
+      2. PROXIMITY AUDIT: Search "distance between ${hotelName} ${city} and nearest other Treebo hotel".
+      3. CHANNEL AUDIT: Verify listing status on: treebo.com, MakeMyTrip, Booking.com, Agoda, Goibibo, and Google Maps. All 6 must be in otaAudit.
+      4. COMPETITIVE INDEX: Find at least 4 competitors in the same micro-market with their ADR and ratings.
       
-      Return JSON conforming to the schema. If data is unavailable for a specific field, provide an industry-standard benchmark but indicate it is an estimate in the justification.`,
+      Return the result as JSON.`,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         tools: [{ googleSearch: {} }],
@@ -99,10 +102,10 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
             treeboPresence: {
               type: Type.OBJECT,
               properties: {
-                cityHotelCount: { type: Type.NUMBER },
-                nearestHotelName: { type: Type.STRING },
-                nearestHotelDistance: { type: Type.STRING },
-                marketShareContext: { type: Type.STRING }
+                cityHotelCount: { type: Type.NUMBER, description: "The total number of Treebo properties in this city found on treebo.com" },
+                nearestHotelName: { type: Type.STRING, description: "The name of the closest other Treebo property" },
+                nearestHotelDistance: { type: Type.STRING, description: "Distance with units, e.g. '2.5 km'" },
+                marketShareContext: { type: Type.STRING, description: "A sentence explaining the commercial synergy and network strength in this city." }
               },
               required: ["cityHotelCount", "nearestHotelName", "nearestHotelDistance", "marketShareContext"]
             },
@@ -197,15 +200,8 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
     if (!response.text) throw new Error("Audit engine timed out.");
     
     const result: EvaluationResult = JSON.parse(response.text.trim());
-    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-    if (chunks) {
-      result.groundingSources = chunks.filter((c: any) => c.web).map((c: any) => ({ title: c.web.title || 'Source', uri: c.web.uri }));
-    }
     return result;
   } catch (err: any) {
-    if (err.message?.includes('xhr error') || err.message?.includes('code: 6')) {
-      throw new Error("High-speed audit gateway is busy. Please try again in a few seconds.");
-    }
     throw err;
   }
 };
