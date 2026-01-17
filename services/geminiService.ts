@@ -6,23 +6,19 @@ const SYSTEM_INSTRUCTION = `
 You are a Senior Commercial & Strategy Leader at Treebo Hotels. 
 Conduct a high-fidelity commercial audit using live Google Search grounding.
 
-CORE DIRECTIVE:
-Accuracy is your highest priority. 
+CORE DIRECTIVE - TREEBO NETWORK SYNERGY:
+You MUST provide 100% accurate, live data for the Treebo Network Synergy section.
+1. Perform a live search: "site:treebo.com hotels in [CITY]"
+2. Count the properties by looking for the actual count displayed on the page (e.g., "Showing 25 Hotels"). Do NOT rely on training data. If treebo.com returns no results for that city, the count is 0.
+3. For the 'nearestHotelName' and 'nearestHotelDistance', search for "distance from [TARGET HOTEL NAME] to nearest Treebo hotel in [CITY]". Use maps data or site info to find the absolute closest one.
 
 MANDATORY DATA SOURCE PROTOCOLS:
-1. Guest Sentiment & Quality Index (CRITICAL): You MUST provide a detailed analysis for exactly THREE platforms: Booking.com, MakeMyTrip (MMT), and Agoda. 
-   - Do not skip any of these three.
-   - For each: extract real-world positive/negative points, calculate a sentimentScore (0-100), and identify recurringThemes.
+1. Guest Sentiment & Quality Index: You MUST provide a detailed analysis for exactly THREE platforms: Booking.com, MakeMyTrip (MMT), and Agoda. 
+   - Extract real-world positive/negative points, sentimentScore (0-100), and recurringThemes.
    
-2. Treebo Network Synergy: 
-   - You MUST perform a rigorous verification on treebo.com.
-   - Search specifically for "hotels in [CITY] treebo.com".
-   - cityHotelCount: The exact number of Treebo properties currently live in that city. 
-   - nearestHotelName & nearestHotelDistance: Verified closest Treebo asset and its road distance from the target.
+2. OTA Performance Audit: Check presence and status on treebo.com, MMT, Booking.com, Agoda, Goibibo, and Google Maps.
 
-3. OTA Performance Audit: Check presence and status on treebo.com, MMT, Booking.com, Agoda, Goibibo, and Google Maps.
-
-4. Protocol Audit: Strictly return "PASS", "FAIL", or "WARNING" for duplication, geo-verification, and compliance.
+3. Protocol Audit: Strictly return "PASS", "FAIL", or "WARNING" for duplication, geo-verification, and compliance.
 
 Framework Scores (0-10): Location, Demand, Inventory, Pricing, Upside, Brand Fit.
 
@@ -40,13 +36,13 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
       City: "${city}"
       Type: ${type}
 
-      STRICT SEARCH INSTRUCTIONS:
-      1. GUEST REVIEWS: Search for "${hotelName} ${city} reviews" specifically on Booking.com, MakeMyTrip, and Agoda. Ensure all three are represented in the guestReviews array.
-      2. NETWORK SYNERGY: Search "site:treebo.com hotels in ${city}" to get the live count of Treebo properties and find the nearest one to "${hotelName}".
-      3. CHANNEL AUDIT: Check if "${hotelName}" is active on MMT, Booking, Agoda, and Goibibo.
-      4. VALIDATION: Check for duplicate Google Maps pins or conflicting brand listings.
+      LIVE DATA SCRAPING PROTOCOL:
+      1. TREEBO.COM VERIFICATION: Search "site:treebo.com hotels in ${city}". Look for the text "Showing X hotels" on the page. Set 'cityHotelCount' to X.
+      2. PROXIMITY AUDIT: Search "distance between ${hotelName} ${city} and nearest Treebo property". Identify the closest property name and distance in km.
+      3. GUEST REVIEWS: Search for "${hotelName} ${city} reviews" specifically on Booking.com, MakeMyTrip, and Agoda. Populating guestReviews with all three is mandatory.
+      4. CHANNEL AUDIT: Check if "${hotelName}" is live on MMT, Booking, Agoda.
       
-      Return JSON conforming to schema. Do not hallucinate data; if a specific platform review isn't found, use standard industry benchmarks for that hotel category but mark the source as the requested platform.`,
+      Return JSON conforming to the schema. If data is unavailable for a specific field, provide an industry-standard benchmark but indicate it is an estimate in the justification.`,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         tools: [{ googleSearch: {} }],
