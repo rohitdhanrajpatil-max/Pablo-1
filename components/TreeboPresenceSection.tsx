@@ -11,8 +11,13 @@ const TreeboPresenceSection: React.FC<Props> = ({ presence }) => {
     <div className="relative group overflow-hidden h-full">
       <div className="absolute inset-0 bg-treebo-brown rounded-[2.5rem] shadow-xl transition-all duration-700"></div>
       
-      {/* Subtle Pattern */}
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 rounded-[2.5rem]"></div>
+      {/* Native CSS Pattern (SVG Data URI) - replaces external transparenttextures.com dependency */}
+      <div 
+        className="absolute inset-0 opacity-10 rounded-[2.5rem]" 
+        style={{ 
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.4' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E")` 
+        }}
+      ></div>
       
       {/* Decorative Accents */}
       <div className="absolute -top-12 -right-12 w-48 h-48 bg-treebo-orange/10 rounded-full blur-[60px] animate-pulse"></div>
