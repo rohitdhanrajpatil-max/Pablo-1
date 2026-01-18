@@ -68,6 +68,8 @@ export interface Competitor {
   estimatedADR: string;
   distance: string;
   category: string;
+  topPositives: string[];
+  topNegatives: string[];
 }
 
 export interface TargetHotelMetrics {

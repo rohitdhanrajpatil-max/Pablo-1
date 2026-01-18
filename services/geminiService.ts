@@ -18,11 +18,14 @@ MANDATORY DATA SOURCE PROTOCOLS:
 
 2. UNIT INVENTORY INTEGRITY AUDIT (CRITICAL): 
    - Search specifically for "[HOTEL NAME] [CITY] room types" or "[HOTEL NAME] [CITY] booking.com".
-   - Extract actual room names (e.g., "Oak (Standard)", "Maple (Deluxe)", "Mahogany (Premium)").
-   - Identify discrepancies between platforms (e.g., "Premium room on MMT but Standard on Booking").
-   - Audit amenities and potential "Config Risk" (e.g., "Room size mismatch", "Missing AC in description").
+   - Extract actual room names.
+   - Audit amenities and potential "Config Risk".
 
-3. Protocol Audit: Strictly return "PASS", "FAIL", or "WARNING".
+3. COMPETITIVE INDEX (CRITICAL):
+   - For EACH competitor identified, search for recurring review themes on platforms like Booking.com and TripAdvisor.
+   - Provide exactly 3 Top Positives and 3 Top Negatives themes for each competitor.
+
+4. Protocol Audit: Strictly return "PASS", "FAIL", or "WARNING".
 
 Output ONLY valid JSON matching the provided schema.`;
 
@@ -39,12 +42,12 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
       Mode: ${type}
 
       EXECUTION PROTOCOL:
-      1. INVENTORY SCRAPE: Find actual room types for ${hotelName} ${city}. Use search queries like "room types in ${hotelName} ${city}" and check official listings.
+      1. INVENTORY SCRAPE: Find actual room types for ${hotelName} ${city}.
       2. SYNERGY AUDIT: Count Treebo properties in ${city} via "site:treebo.com".
       3. CHANNEL AUDIT: Verify presence on the 6 mandatory OTA platforms.
-      4. COMPETITIVE INDEX: Fetch ADR/Ratings for 4 local peers.
+      4. COMPETITIVE INDEX: Fetch ADR/Ratings for 4 local peers. FOR EACH PEER, EXAMINE THEIR TOP 3 RECURRING POSITIVE AND NEGATIVE REVIEW THEMES.
       
-      Populate roomTypeAudit with specific room names and identified risks.
+      Populate competitors with their topPositives and topNegatives arrays.
       Return as valid JSON.`,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -132,9 +135,11 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
                   otaRating: { type: Type.NUMBER },
                   estimatedADR: { type: Type.STRING },
                   distance: { type: Type.STRING },
-                  category: { type: Type.STRING }
+                  category: { type: Type.STRING },
+                  topPositives: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  topNegatives: { type: Type.ARRAY, items: { type: Type.STRING } }
                 },
-                required: ["name", "otaRating", "estimatedADR", "distance", "category"]
+                required: ["name", "otaRating", "estimatedADR", "distance", "category", "topPositives", "topNegatives"]
               }
             },
             guestReviews: {

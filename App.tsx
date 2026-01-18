@@ -288,7 +288,7 @@ const App: React.FC = () => {
                   </div>
                 )}
                 <div className="lg:col-span-1">
-                  <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4 mb-4">
+                  <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-4 mb-4">
                     Security Protocols
                     <div className="h-px bg-slate-200 flex-grow"></div>
                   </h3>
@@ -296,7 +296,7 @@ const App: React.FC = () => {
                 </div>
             </div>
 
-            {/* OTA Channel Integrity Audit - Ensuring all major platforms are visible */}
+            {/* OTA Channel Integrity Audit */}
             <section className="space-y-8 avoid-page-break">
               <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
                 OTA Channel Logic Verification (Inc. Agoda & Goibibo)
@@ -325,7 +325,7 @@ const App: React.FC = () => {
               <section className="space-y-8 page-break-before">
                 <div className="flex items-center justify-between gap-6">
                   <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4 flex-grow">
-                    Competitive Index (MCI)
+                    Competitive Index (MCI) & Recurring Sentiment
                     <div className="h-px bg-slate-200 flex-grow"></div>
                   </h3>
                   {/* Multi-Select Category Filter */}
@@ -343,7 +343,7 @@ const App: React.FC = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                  <div className="lg:col-span-3 bg-white rounded-[2.5rem] border border-slate-200 p-10 avoid-page-break shadow-xl shadow-slate-200/30">
+                  <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-200 p-10 avoid-page-break shadow-xl shadow-slate-200/30">
                     <div className="flex justify-between items-center mb-10">
                       <div className="space-y-1">
                         <h4 className="text-treebo-brown font-black uppercase text-[10px] tracking-[0.3em]">Strategy Plotting</h4>
@@ -382,27 +382,52 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden avoid-page-break shadow-xl shadow-slate-200/30 flex flex-col">
+                  <div className="lg:col-span-3 bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden avoid-page-break shadow-xl shadow-slate-200/30 flex flex-col">
                     <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                      <p className="text-[9px] font-black text-treebo-brown uppercase tracking-[0.4em]">Market Nodes Indexed</p>
+                      <p className="text-[9px] font-black text-treebo-brown uppercase tracking-[0.4em]">Market Nodes & Recurring Review Themes</p>
                       <span className="bg-slate-900 text-white px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest">{filteredCompetitors.length} NODES</span>
                     </div>
-                    <div className="divide-y divide-slate-100 overflow-y-auto max-h-[500px] custom-scrollbar">
+                    <div className="divide-y divide-slate-100 overflow-y-auto max-h-[600px] custom-scrollbar">
                       {filteredCompetitors.length > 0 ? filteredCompetitors.map((comp, idx) => (
-                        <div key={idx} className="p-6 hover:bg-slate-50 transition-all group">
-                          <div className="flex justify-between items-start mb-2">
-                            <p className="text-xs font-black text-treebo-brown uppercase tracking-tight group-hover:text-treebo-orange transition-colors truncate max-w-[150px]">{comp.name}</p>
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-md">{comp.distance}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                             <div className="flex items-center gap-3">
-                                <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[7px] font-black uppercase tracking-widest">{comp.category}</span>
-                                <div className="flex items-center gap-1">
-                                  <span className="text-xs font-black text-slate-700 tabular-nums">{comp.otaRating.toFixed(1)}</span>
-                                  <svg className="w-3 h-3 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                        <div key={idx} className="p-8 hover:bg-slate-50 transition-all group">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <p className="text-sm font-black text-treebo-brown uppercase tracking-tight group-hover:text-treebo-orange transition-colors">{comp.name}</p>
+                                <div className="flex items-center gap-3 mt-1">
+                                    <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[7px] font-black uppercase tracking-widest">{comp.category}</span>
+                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{comp.distance}</span>
                                 </div>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-sm font-black text-treebo-orange tabular-nums block">{comp.estimatedADR}</span>
+                                <div className="flex items-center justify-end gap-1 mt-1">
+                                    <span className="text-xs font-black text-slate-700 tabular-nums">{comp.otaRating.toFixed(1)}</span>
+                                    <svg className="w-3 h-3 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                                </div>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4 mt-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100 group-hover:bg-white group-hover:border-slate-200 transition-all">
+                             <div className="space-y-2">
+                                <p className="text-[7px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-1">Top Recurring Positives</p>
+                                <ul className="space-y-1">
+                                    {comp.topPositives?.slice(0, 3).map((p, i) => (
+                                        <li key={i} className="text-[9px] font-bold text-slate-600 flex items-start gap-1.5 leading-tight">
+                                            <span className="text-emerald-500">•</span> {p}
+                                        </li>
+                                    ))}
+                                </ul>
                              </div>
-                             <span className="text-xs font-black text-treebo-orange tabular-nums">{comp.estimatedADR}</span>
+                             <div className="space-y-2">
+                                <p className="text-[7px] font-black text-red-500 uppercase tracking-[0.2em] mb-1">Top Recurring Negatives</p>
+                                <ul className="space-y-1">
+                                    {comp.topNegatives?.slice(0, 3).map((n, i) => (
+                                        <li key={i} className="text-[9px] font-bold text-slate-600 flex items-start gap-1.5 leading-tight">
+                                            <span className="text-red-400">•</span> {n}
+                                        </li>
+                                    ))}
+                                </ul>
+                             </div>
                           </div>
                         </div>
                       )) : (
