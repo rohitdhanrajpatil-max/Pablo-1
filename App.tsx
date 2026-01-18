@@ -23,7 +23,8 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ hotelName?: boolean; city?: boolean }>({});
   const [comparisonMetric, setComparisonMetric] = useState<'adr' | 'rating'>('rating');
-  const [categoryFilter, setCategoryFilter] = useState<string>('All');
+  // Changed to array to support multi-select filtering
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['All']);
   const [shareFeedback, setShareFeedback] = useState(false);
   
   const reportRef = useRef<HTMLDivElement>(null);
@@ -74,7 +75,7 @@ const App: React.FC = () => {
     try {
       const evaluation = await evaluateHotel(hotelName, city, reportType);
       setResult(evaluation);
-      setCategoryFilter('All');
+      setSelectedCategories(['All']); // Reset to All on new report
       
       try {
         const url = new URL(window.location.href);
@@ -99,7 +100,7 @@ const App: React.FC = () => {
     setCity('');
     setError(null);
     setFieldErrors({});
-    setCategoryFilter('All');
+    setSelectedCategories(['All']);
     try {
       window.history.pushState({}, '', window.location.pathname);
     } catch (historyError) {
@@ -144,11 +145,31 @@ const App: React.FC = () => {
     return ['All', ...categories];
   }, [result]);
 
+  const toggleCategory = (category: string) => {
+    if (category === 'All') {
+      setSelectedCategories(['All']);
+      return;
+    }
+
+    let next = selectedCategories.filter(c => c !== 'All');
+    if (next.includes(category)) {
+      next = next.filter(c => c !== category);
+    } else {
+      next = [...next, category];
+    }
+
+    if (next.length === 0) {
+      setSelectedCategories(['All']);
+    } else {
+      setSelectedCategories(next);
+    }
+  };
+
   const filteredCompetitors = useMemo(() => {
     if (!result?.competitors) return [];
-    if (categoryFilter === 'All') return result.competitors;
-    return result.competitors.filter(c => c.category === categoryFilter);
-  }, [result, categoryFilter]);
+    if (selectedCategories.includes('All')) return result.competitors;
+    return result.competitors.filter(c => selectedCategories.includes(c.category));
+  }, [result, selectedCategories]);
 
   const chartData = useMemo(() => {
     if (!result) return [];
@@ -307,9 +328,14 @@ const App: React.FC = () => {
                     Competitive Index (MCI)
                     <div className="h-px bg-slate-200 flex-grow"></div>
                   </h3>
-                  <div className="no-print bg-white border border-slate-200 p-1 rounded-xl shadow-sm flex items-center">
-                    {availableCategories.slice(0, 3).map(cat => (
-                      <button key={cat} onClick={() => setCategoryFilter(cat)} className={`px-4 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${categoryFilter === cat ? 'bg-treebo-brown text-white shadow-md' : 'text-slate-400 hover:text-treebo-brown'}`}>
+                  {/* Multi-Select Category Filter */}
+                  <div className="no-print bg-white border border-slate-200 p-1 rounded-xl shadow-sm flex items-center gap-1">
+                    {availableCategories.map(cat => (
+                      <button 
+                        key={cat} 
+                        onClick={() => toggleCategory(cat)} 
+                        className={`px-4 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${selectedCategories.includes(cat) ? 'bg-treebo-brown text-white shadow-md' : 'text-slate-400 hover:text-treebo-brown hover:bg-slate-50'}`}
+                      >
                         {cat}
                       </button>
                     ))}
@@ -330,7 +356,7 @@ const App: React.FC = () => {
                     </div>
 
                     <div className="space-y-8">
-                      {(chartData || []).map((data, idx) => {
+                      {chartData.length > 1 ? (chartData.map((data, idx) => {
                         const val = comparisonMetric === 'rating' ? data.rating : data.adr;
                         const percentage = (val / maxVal) * 100;
                         return (
@@ -348,7 +374,11 @@ const App: React.FC = () => {
                             </div>
                           </div>
                         );
-                      })}
+                      })) : (
+                        <div className="py-12 text-center">
+                          <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] italic">No filtered data available for this selection.</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -377,7 +407,7 @@ const App: React.FC = () => {
                         </div>
                       )) : (
                         <div className="p-12 text-center">
-                          <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] italic">No peers recovered.</p>
+                          <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] italic">No peers recovered for this filter.</p>
                         </div>
                       )}
                     </div>
