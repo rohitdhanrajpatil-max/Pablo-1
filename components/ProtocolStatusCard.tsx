@@ -3,19 +3,10 @@ import React from 'react';
 import { ProtocolStatus, OTAStatus } from '../types';
 
 interface Props {
-  status?: ProtocolStatus;
+  status: ProtocolStatus;
 }
 
 const ProtocolStatusCard: React.FC<Props> = ({ status }) => {
-  // Defensive guard for missing status data
-  if (!status) {
-    return (
-      <div className="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 p-10 h-full flex items-center justify-center">
-        <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic text-center">Protocol Integrity Data Pending...</p>
-      </div>
-    );
-  }
-
   const renderItem = (label: string, value: any) => {
     // Normalize value to handle potential AI inconsistencies
     const normalizedValue = (value || '').toString().toUpperCase().trim();

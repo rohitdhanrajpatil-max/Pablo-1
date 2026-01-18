@@ -13,7 +13,7 @@ const ScoreCard: React.FC<Props> = ({ data }) => {
     return 'text-red-600 bg-red-50 border-red-100';
   };
 
-  const safeData = Array.isArray(data) ? data : [];
+  const safeData = data || [];
 
   return (
     <div className="bg-white rounded-[2rem] shadow-xl border border-slate-200 overflow-hidden">

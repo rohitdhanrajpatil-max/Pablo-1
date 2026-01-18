@@ -23,22 +23,13 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ hotelName?: boolean; city?: boolean }>({});
   const [comparisonMetric, setComparisonMetric] = useState<'adr' | 'rating'>('rating');
+  // Changed to array to support multi-select filtering
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['All']);
   const [shareFeedback, setShareFeedback] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | undefined>();
   
   const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Attempt to get location for more accurate radius grounding
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setUserLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-        (err) => console.log("Geolocation skip:", err.message),
-        { timeout: 5000 }
-      );
-    }
-
     const params = new URLSearchParams(window.location.search);
     const h = params.get('hotel');
     const c = params.get('city');
@@ -52,7 +43,7 @@ const App: React.FC = () => {
       const autoEvaluate = async () => {
         setLoading(true);
         try {
-          const evaluation = await evaluateHotel(h, c, t || 'New Onboarding', userLocation);
+          const evaluation = await evaluateHotel(h, c, t || 'New Onboarding');
           setResult(evaluation);
         } catch (err: any) {
           console.error(err);
@@ -76,15 +67,15 @@ const App: React.FC = () => {
 
   const handleEvaluate = async () => {
     if (!validateInputs()) {
-      setError("Strategic inputs required: Hotel Name and City node mapping.");
+      setError("Incomplete data: Please ensure both Hotel Name and City are provided.");
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      const evaluation = await evaluateHotel(hotelName, city, reportType, userLocation);
+      const evaluation = await evaluateHotel(hotelName, city, reportType);
       setResult(evaluation);
-      setSelectedCategories(['All']); 
+      setSelectedCategories(['All']); // Reset to All on new report
       
       try {
         const url = new URL(window.location.href);
@@ -97,7 +88,7 @@ const App: React.FC = () => {
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "The audit request failed. Strategic node connection lost.");
+      setError(err.message || "The audit request failed. Please check connectivity.");
     } finally {
       setLoading(false);
     }
@@ -118,7 +109,7 @@ const App: React.FC = () => {
   };
 
   const handleShare = async () => {
-    if (!result?.executiveSummary) return;
+    if (!result) return;
     const url = new URL(window.location.href);
     url.searchParams.set('hotel', result.executiveSummary.hotelName);
     url.searchParams.set('city', result.executiveSummary.city);
@@ -134,7 +125,7 @@ const App: React.FC = () => {
   };
 
   const handleExportPDF = () => {
-    if (!reportRef.current || !result?.executiveSummary) return;
+    if (!reportRef.current || !result) return;
     setExporting(true);
     const element = reportRef.current;
     const filename = `Treebo_Audit_${result.executiveSummary.hotelName.replace(/\s+/g, '_')}_${result.executiveSummary.city}.pdf`;
@@ -149,7 +140,7 @@ const App: React.FC = () => {
   };
 
   const availableCategories = useMemo(() => {
-    if (!result?.competitors || !Array.isArray(result.competitors)) return ['All'];
+    if (!result?.competitors) return ['All'];
     const categories = Array.from(new Set(result.competitors.map(c => c.category)));
     return ['All', ...categories];
   }, [result]);
@@ -175,13 +166,13 @@ const App: React.FC = () => {
   };
 
   const filteredCompetitors = useMemo(() => {
-    if (!result?.competitors || !Array.isArray(result.competitors)) return [];
+    if (!result?.competitors) return [];
     if (selectedCategories.includes('All')) return result.competitors;
     return result.competitors.filter(c => selectedCategories.includes(c.category));
   }, [result, selectedCategories]);
 
   const chartData = useMemo(() => {
-    if (!result || !result.executiveSummary) return [];
+    if (!result) return [];
     const target = {
       name: `[TARGET] ${result.executiveSummary.hotelName}`,
       rating: result.targetHotelMetrics?.averageOTARating || 0,
@@ -198,12 +189,11 @@ const App: React.FC = () => {
   }, [result, filteredCompetitors]);
 
   const sortedOtaAudit = useMemo(() => {
-    if (!result?.otaAudit || !Array.isArray(result.otaAudit)) return [];
-    // MANDATORY CHANNEL SORT ORDER
-    const order = ['treebo', 'makemytrip', 'mmt', 'booking', 'agoda', 'goibibo', 'google'];
+    if (!result?.otaAudit) return [];
+    const order = ['treebo.com', 'treebo', 'makemytrip', 'mmt', 'booking.com', 'booking', 'agoda', 'goibibo', 'google maps', 'google'];
     return [...result.otaAudit].sort((a, b) => {
-      const aName = (a.platform || '').toLowerCase();
-      const bName = (b.platform || '').toLowerCase();
+      const aName = a.platform.toLowerCase();
+      const bName = b.platform.toLowerCase();
       const aIndex = order.findIndex(o => aName.includes(o));
       const bIndex = order.findIndex(o => bName.includes(o));
       if (aIndex === -1 && bIndex === -1) return 0;
@@ -309,18 +299,18 @@ const App: React.FC = () => {
             {/* OTA Channel Integrity Audit */}
             <section className="space-y-8 avoid-page-break">
               <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
-                OTA Channel Logic Verification (6 Mandatory Channels)
+                OTA Channel Logic Verification (Inc. Agoda & Goibibo)
                 <div className="h-px bg-slate-200 flex-grow"></div>
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4">
-                {sortedOtaAudit.map((audit, idx) => (
+                {(sortedOtaAudit || []).map((audit, idx) => (
                   <OTAAuditCard key={idx} audit={audit} />
                 ))}
               </div>
             </section>
 
             {/* Inventory Detail */}
-            {result.roomTypeAudit && Array.isArray(result.roomTypeAudit) && result.roomTypeAudit.length > 0 && (
+            {result.roomTypeAudit && result.roomTypeAudit.length > 0 && (
               <section className="space-y-8 page-break-before">
                 <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
                   Unit Inventory Integrity Audit
@@ -331,13 +321,14 @@ const App: React.FC = () => {
             )}
 
             {/* Competitive Index */}
-            {result.competitors && Array.isArray(result.competitors) && result.competitors.length > 0 && (
+            {result.competitors && result.competitors.length > 0 && (
               <section className="space-y-8 page-break-before">
                 <div className="flex items-center justify-between gap-6">
                   <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4 flex-grow">
-                    Competitive Index (2KM Cluster) & Recurring Sentiment
+                    Competitive Index (3KM Cluster) & Recurring Sentiment
                     <div className="h-px bg-slate-200 flex-grow"></div>
                   </h3>
+                  {/* Multi-Select Category Filter */}
                   <div className="no-print bg-white border border-slate-200 p-1 rounded-xl shadow-sm flex items-center gap-1">
                     {availableCategories.map(cat => (
                       <button 
@@ -394,7 +385,7 @@ const App: React.FC = () => {
                   <div className="lg:col-span-3 bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden avoid-page-break shadow-xl shadow-slate-200/30 flex flex-col">
                     <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                       <p className="text-[9px] font-black text-treebo-brown uppercase tracking-[0.4em]">Market Nodes & Recurring Review Themes</p>
-                      <span className="bg-slate-900 text-white px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest">{filteredCompetitors.length} NODES (2KM RADIUS)</span>
+                      <span className="bg-slate-900 text-white px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest">{filteredCompetitors.length} NODES (3KM RADIUS)</span>
                     </div>
                     <div className="divide-y divide-slate-100 overflow-y-auto max-h-[600px] custom-scrollbar">
                       {filteredCompetitors.length > 0 ? filteredCompetitors.map((comp, idx) => (
@@ -420,21 +411,21 @@ const App: React.FC = () => {
                              <div className="space-y-2">
                                 <p className="text-[7px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-1">Top Recurring Positives</p>
                                 <ul className="space-y-1">
-                                    {comp.topPositives && Array.isArray(comp.topPositives) ? comp.topPositives.slice(0, 3).map((p, i) => (
+                                    {comp.topPositives?.slice(0, 3).map((p, i) => (
                                         <li key={i} className="text-[9px] font-bold text-slate-600 flex items-start gap-1.5 leading-tight">
                                             <span className="text-emerald-500">•</span> {p}
                                         </li>
-                                    )) : null}
+                                    ))}
                                 </ul>
                              </div>
                              <div className="space-y-2">
                                 <p className="text-[7px] font-black text-red-500 uppercase tracking-[0.2em] mb-1">Top Recurring Negatives</p>
                                 <ul className="space-y-1">
-                                    {comp.topNegatives && Array.isArray(comp.topNegatives) ? comp.topNegatives.slice(0, 3).map((n, i) => (
+                                    {comp.topNegatives?.slice(0, 3).map((n, i) => (
                                         <li key={i} className="text-[9px] font-bold text-slate-600 flex items-start gap-1.5 leading-tight">
                                             <span className="text-red-400">•</span> {n}
                                         </li>
-                                    )) : null}
+                                    ))}
                                 </ul>
                              </div>
                           </div>
@@ -460,7 +451,7 @@ const App: React.FC = () => {
                     <span className="w-2 h-8 bg-red-600 rounded-full"></span> Strategy Risk Ledger
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-                    {Array.isArray(result.keyRisks) && result.keyRisks.map((risk, i) => (
+                    {(result.keyRisks || []).map((risk, i) => (
                       <div key={i} className="text-xs font-black text-slate-600 leading-relaxed flex gap-4 pb-4 border-b border-slate-50 last:border-0 hover:border-red-600 transition-all">
                         <span className="text-red-600 font-black">!</span> {risk}
                       </div>
@@ -478,29 +469,6 @@ const App: React.FC = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Grounding Sources Ledger */}
-              {result.groundingSources && Array.isArray(result.groundingSources) && result.groundingSources.length > 0 && (
-                <div className="mt-12 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm no-print">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-4">Grounding Sources & Integrity Links</p>
-                  <div className="flex flex-wrap gap-4">
-                    {result.groundingSources.map((source, i) => (
-                      <a 
-                        key={i} 
-                        href={source.uri} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-bold text-blue-600 hover:bg-blue-50 transition-all truncate max-w-[200px]"
-                      >
-                        <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                        {source.title}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
             </section>
           </div>
         </div>
@@ -522,7 +490,7 @@ const App: React.FC = () => {
             <span className="text-treebo-orange block">AUDIT ENGINE</span>
           </h2>
           <p className="text-slate-500 text-xl max-w-2xl mx-auto font-medium leading-relaxed tracking-tight px-6">
-            Execute professional commercial audits for the Treebo portfolio. Strategic node mapping, micro-market indexing, and demand cluster logic within a precise 2KM radius.
+            Execute professional commercial audits for the Treebo portfolio. Strategic node mapping, micro-market indexing, and demand cluster logic.
           </p>
         </div>
 
@@ -565,7 +533,7 @@ const App: React.FC = () => {
             <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.6em]">ENGINE ONLINE • STRAT-NODE SECURE</p>
             <div className="flex gap-6 items-center">
               <span className="w-3 h-3 rounded-full bg-treebo-orange animate-pulse"></span>
-              <span className="text-[10px] text-white font-black uppercase tracking-widest">GEMINI-2.5 FLASH CLUSTER</span>
+              <span className="text-[10px] text-white font-black uppercase tracking-widest">GEMINI-3X FLASH</span>
             </div>
           </div>
         </div>

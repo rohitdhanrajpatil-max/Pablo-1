@@ -7,7 +7,7 @@ interface Props {
 }
 
 const RoomTypeAuditSection: React.FC<Props> = ({ rooms }) => {
-  const safeRooms = Array.isArray(rooms) ? rooms : [];
+  const safeRooms = rooms || [];
   
   if (safeRooms.length === 0) {
     return (
@@ -20,7 +20,7 @@ const RoomTypeAuditSection: React.FC<Props> = ({ rooms }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {safeRooms.map((room, idx) => {
-        const amenities = Array.isArray(room.amenities) ? room.amenities : [];
+        const amenities = room.amenities || [];
         const hasRisk = !!room.configRisk && room.configRisk.toLowerCase() !== 'none';
         
         return (
