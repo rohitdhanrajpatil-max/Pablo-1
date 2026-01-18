@@ -8,22 +8,21 @@ Conduct a high-fidelity commercial audit using live Google Search grounding.
 
 CORE DIRECTIVE - TREEBO NETWORK SYNERGY (CRITICAL):
 You MUST provide 100% accurate, live data for the Treebo Presence section.
-1. Perform a live search: "site:treebo.com hotels in [CITY]" (e.g., "site:treebo.com hotels in Bangalore")
-2. Look specifically for the total count of properties mentioned in search results (e.g., "Showing 24 hotels", "Book from 31 Treebo hotels"). Extract the integer.
-3. If you find no results, set cityHotelCount to 0. 
-4. For 'nearestHotelName' and 'nearestHotelDistance', search for: "distance from [TARGET HOTEL NAME] [CITY] to nearest Treebo hotel". 
-5. If the target hotel IS a Treebo property, identify the NEXT closest Treebo property as the nearest node.
+1. Perform a live search: "site:treebo.com hotels in [CITY]"
+2. Look specifically for the total count of properties mentioned in search results (e.g., "Showing 24 hotels"). Extract the integer.
+3. If the target hotel IS a Treebo property, identify the NEXT closest Treebo property as the nearest node.
 
 MANDATORY DATA SOURCE PROTOCOLS:
-1. OTA Performance Audit: You MUST check status for EXACTLY these 6 platforms: treebo.com, MakeMyTrip, Booking.com, Agoda, Goibibo, and Google Maps.
-   - For each, determine if the property is listed, its current rating, and any blockers (e.g., "No inventory", "Outdated images", "High price parity").
-   
-2. Guest Sentiment: Provide detailed analysis for Booking.com, MakeMyTrip, and Agoda. 
-   - Extract real-world positive/negative points and sentimentScore (0-100).
+1. OTA Performance Audit: Check status for treebo.com, MakeMyTrip, Booking.com, Agoda, Goibibo, and Google Maps.
+   - Determine listing presence, rating, and blockers (e.g., "Outdated photos", "No available rooms").
 
-3. Protocol Audit: Strictly return "PASS", "FAIL", or "WARNING" for duplication, geo-verification, and compliance.
+2. UNIT INVENTORY INTEGRITY AUDIT (CRITICAL): 
+   - Search specifically for "[HOTEL NAME] [CITY] room types" or "[HOTEL NAME] [CITY] booking.com".
+   - Extract actual room names (e.g., "Oak (Standard)", "Maple (Deluxe)", "Mahogany (Premium)").
+   - Identify discrepancies between platforms (e.g., "Premium room on MMT but Standard on Booking").
+   - Audit amenities and potential "Config Risk" (e.g., "Room size mismatch", "Missing AC in description").
 
-Framework Scores (0-10): Location, Demand, Inventory, Pricing, Upside, Brand Fit.
+3. Protocol Audit: Strictly return "PASS", "FAIL", or "WARNING".
 
 Output ONLY valid JSON matching the provided schema.`;
 
@@ -35,17 +34,18 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
       model: 'gemini-3-flash-preview',
       contents: `
       PROPERTY STRATEGY AUDIT:
-      Target Asset: "${hotelName}"
-      Market Node: "${city}"
-      Audit Protocol: ${type}
+      Asset: "${hotelName}"
+      City: "${city}"
+      Mode: ${type}
 
-      EXECUTION STEPS:
-      1. SYNERGY AUDIT: Use googleSearch to find "treebo hotels in ${city}" and "treebo.com ${city} hotel count". Extract the EXACT count.
-      2. PROXIMITY AUDIT: Search "distance between ${hotelName} ${city} and nearest other Treebo hotel".
-      3. CHANNEL AUDIT: Verify listing status on: treebo.com, MakeMyTrip, Booking.com, Agoda, Goibibo, and Google Maps. All 6 must be in otaAudit.
-      4. COMPETITIVE INDEX: Find at least 4 competitors in the same micro-market with their ADR and ratings.
+      EXECUTION PROTOCOL:
+      1. INVENTORY SCRAPE: Find actual room types for ${hotelName} ${city}. Use search queries like "room types in ${hotelName} ${city}" and check official listings.
+      2. SYNERGY AUDIT: Count Treebo properties in ${city} via "site:treebo.com".
+      3. CHANNEL AUDIT: Verify presence on the 6 mandatory OTA platforms.
+      4. COMPETITIVE INDEX: Fetch ADR/Ratings for 4 local peers.
       
-      Return the result as JSON.`,
+      Populate roomTypeAudit with specific room names and identified risks.
+      Return as valid JSON.`,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         tools: [{ googleSearch: {} }],
@@ -102,10 +102,10 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
             treeboPresence: {
               type: Type.OBJECT,
               properties: {
-                cityHotelCount: { type: Type.NUMBER, description: "The total number of Treebo properties in this city found on treebo.com" },
-                nearestHotelName: { type: Type.STRING, description: "The name of the closest other Treebo property" },
-                nearestHotelDistance: { type: Type.STRING, description: "Distance with units, e.g. '2.5 km'" },
-                marketShareContext: { type: Type.STRING, description: "A sentence explaining the commercial synergy and network strength in this city." }
+                cityHotelCount: { type: Type.NUMBER },
+                nearestHotelName: { type: Type.STRING },
+                nearestHotelDistance: { type: Type.STRING },
+                marketShareContext: { type: Type.STRING }
               },
               required: ["cityHotelCount", "nearestHotelName", "nearestHotelDistance", "marketShareContext"]
             },
@@ -137,8 +137,6 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
                 required: ["name", "otaRating", "estimatedADR", "distance", "category"]
               }
             },
-            topCorporates: { type: Type.ARRAY, items: { type: Type.STRING } },
-            topTravelAgents: { type: Type.ARRAY, items: { type: Type.STRING } },
             guestReviews: {
               type: Type.ARRAY,
               items: {
@@ -191,16 +189,15 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
             "competitors",
             "targetHotelMetrics",
             "guestReviews",
-            "treeboPresence"
+            "treeboPresence",
+            "roomTypeAudit"
           ]
         }
       }
     });
 
     if (!response.text) throw new Error("Audit engine timed out.");
-    
-    const result: EvaluationResult = JSON.parse(response.text.trim());
-    return result;
+    return JSON.parse(response.text.trim());
   } catch (err: any) {
     throw err;
   }
