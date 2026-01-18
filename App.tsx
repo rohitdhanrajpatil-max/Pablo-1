@@ -23,7 +23,6 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ hotelName?: boolean; city?: boolean }>({});
   const [comparisonMetric, setComparisonMetric] = useState<'adr' | 'rating'>('rating');
-  // Changed to array to support multi-select filtering
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['All']);
   const [shareFeedback, setShareFeedback] = useState(false);
   
@@ -75,7 +74,7 @@ const App: React.FC = () => {
     try {
       const evaluation = await evaluateHotel(hotelName, city, reportType);
       setResult(evaluation);
-      setSelectedCategories(['All']); // Reset to All on new report
+      setSelectedCategories(['All']); 
       
       try {
         const url = new URL(window.location.href);
@@ -175,13 +174,13 @@ const App: React.FC = () => {
     if (!result) return [];
     const target = {
       name: `[TARGET] ${result.executiveSummary.hotelName}`,
-      rating: result.targetHotelMetrics?.averageOTARating || 0,
-      adr: result.targetHotelMetrics?.estimatedADR || 0,
+      rating: Number(result.targetHotelMetrics?.averageOTARating) || 0,
+      adr: Number(result.targetHotelMetrics?.estimatedADR) || 0,
       isTarget: true
     };
     const others = filteredCompetitors.map(c => ({
       name: c.name,
-      rating: c.otaRating,
+      rating: Number(c.otaRating) || 0,
       adr: parseFloat(String(c.estimatedADR).replace(/[^0-9.]/g, '')) || 0,
       isTarget: false
     }));
@@ -190,10 +189,11 @@ const App: React.FC = () => {
 
   const sortedOtaAudit = useMemo(() => {
     if (!result?.otaAudit) return [];
-    const order = ['treebo.com', 'treebo', 'makemytrip', 'mmt', 'booking.com', 'booking', 'agoda', 'goibibo', 'google maps', 'google'];
+    // Strict priority order as per commercial strategy
+    const order = ['treebo.com', 'treebo', 'makemytrip', 'mmt', 'booking.com', 'booking', 'agoda', 'goibibo', 'google maps', 'google', 'gmb'];
     return [...result.otaAudit].sort((a, b) => {
-      const aName = a.platform.toLowerCase();
-      const bName = b.platform.toLowerCase();
+      const aName = (a.platform || '').toLowerCase();
+      const bName = (b.platform || '').toLowerCase();
       const aIndex = order.findIndex(o => aName.includes(o));
       const bIndex = order.findIndex(o => bName.includes(o));
       if (aIndex === -1 && bIndex === -1) return 0;
@@ -210,6 +210,8 @@ const App: React.FC = () => {
 
   if (result) {
     const isHealthReport = result.executiveSummary.evaluationType === 'Existing Hotel Health Report';
+    const averageScore = Number(result.executiveSummary.averageScore) || 0;
+
     return (
       <Layout fullWidth={true}>
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700 pb-20 px-6 md:px-12 pt-8">
@@ -257,8 +259,8 @@ const App: React.FC = () => {
                     <div className="space-y-4">
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em]">Node Score</p>
                       <div className="flex items-baseline gap-2">
-                        <span className={`text-6xl font-black tracking-tighter ${result.executiveSummary.averageScore >= 7 ? 'text-emerald-600' : result.executiveSummary.averageScore >= 5 ? 'text-amber-600' : 'text-red-600'}`}>
-                          {result.executiveSummary.averageScore.toFixed(1)}
+                        <span className={`text-6xl font-black tracking-tighter ${averageScore >= 7 ? 'text-emerald-600' : averageScore >= 5 ? 'text-amber-600' : 'text-red-600'}`}>
+                          {averageScore.toFixed(1)}
                         </span>
                         <span className="text-slate-300 text-xl font-black">/10</span>
                       </div>
@@ -299,11 +301,11 @@ const App: React.FC = () => {
             {/* OTA Channel Integrity Audit */}
             <section className="space-y-8 avoid-page-break">
               <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4">
-                OTA Channel Logic Verification (Inc. Agoda & Goibibo)
+                OTA Channel Logic Verification (6 Mandatory Channels)
                 <div className="h-px bg-slate-200 flex-grow"></div>
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4">
-                {(sortedOtaAudit || []).map((audit, idx) => (
+                {sortedOtaAudit.map((audit, idx) => (
                   <OTAAuditCard key={idx} audit={audit} />
                 ))}
               </div>
@@ -328,7 +330,6 @@ const App: React.FC = () => {
                     Competitive Index (3KM Cluster) & Recurring Sentiment
                     <div className="h-px bg-slate-200 flex-grow"></div>
                   </h3>
-                  {/* Multi-Select Category Filter */}
                   <div className="no-print bg-white border border-slate-200 p-1 rounded-xl shadow-sm flex items-center gap-1">
                     {availableCategories.map(cat => (
                       <button 
@@ -359,6 +360,7 @@ const App: React.FC = () => {
                       {chartData.length > 1 ? (chartData.map((data, idx) => {
                         const val = comparisonMetric === 'rating' ? data.rating : data.adr;
                         const percentage = (val / maxVal) * 100;
+                        const displayVal = Number(val) || 0;
                         return (
                           <div key={idx} className="space-y-2.5">
                             <div className="flex justify-between items-end px-1">
@@ -366,7 +368,7 @@ const App: React.FC = () => {
                                 {data.name}
                               </span>
                               <span className="text-[11px] font-black text-treebo-brown tabular-nums">
-                                {comparisonMetric === 'adr' ? `${result.targetHotelMetrics?.adrCurrency || 'INR'} ${val.toLocaleString()}` : `${val.toFixed(1)}/5`}
+                                {comparisonMetric === 'adr' ? `${result.targetHotelMetrics?.adrCurrency || 'INR'} ${displayVal.toLocaleString()}` : `${displayVal.toFixed(1)}/5`}
                               </span>
                             </div>
                             <div className="h-3.5 w-full bg-slate-50 rounded-full border border-slate-100 overflow-hidden shadow-inner p-0.5">
@@ -401,7 +403,7 @@ const App: React.FC = () => {
                             <div className="text-right">
                                 <span className="text-sm font-black text-treebo-orange tabular-nums block">{comp.estimatedADR}</span>
                                 <div className="flex items-center justify-end gap-1 mt-1">
-                                    <span className="text-xs font-black text-slate-700 tabular-nums">{comp.otaRating.toFixed(1)}</span>
+                                    <span className="text-xs font-black text-slate-700 tabular-nums">{(Number(comp.otaRating) || 0).toFixed(1)}</span>
                                     <svg className="w-3 h-3 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                                 </div>
                             </div>
@@ -411,7 +413,7 @@ const App: React.FC = () => {
                              <div className="space-y-2">
                                 <p className="text-[7px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-1">Top Recurring Positives</p>
                                 <ul className="space-y-1">
-                                    {comp.topPositives?.slice(0, 3).map((p, i) => (
+                                    {(comp.topPositives || []).slice(0, 3).map((p, i) => (
                                         <li key={i} className="text-[9px] font-bold text-slate-600 flex items-start gap-1.5 leading-tight">
                                             <span className="text-emerald-500">•</span> {p}
                                         </li>
@@ -421,7 +423,7 @@ const App: React.FC = () => {
                              <div className="space-y-2">
                                 <p className="text-[7px] font-black text-red-500 uppercase tracking-[0.2em] mb-1">Top Recurring Negatives</p>
                                 <ul className="space-y-1">
-                                    {comp.topNegatives?.slice(0, 3).map((n, i) => (
+                                    {(comp.topNegatives || []).slice(0, 3).map((n, i) => (
                                         <li key={i} className="text-[9px] font-bold text-slate-600 flex items-start gap-1.5 leading-tight">
                                             <span className="text-red-400">•</span> {n}
                                         </li>
@@ -469,6 +471,21 @@ const App: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Grounding Sources */}
+              {result.groundingSources && result.groundingSources.length > 0 && (
+                <div className="mt-8 bg-white rounded-3xl border border-slate-200 p-6 no-print">
+                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Commercial Strategy - Verification Sources</p>
+                   <div className="flex flex-wrap gap-4">
+                      {result.groundingSources.map((source, idx) => (
+                        <a key={idx} href={source.uri} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-treebo-orange hover:bg-treebo-orange/5 transition-colors">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                          {source.title}
+                        </a>
+                      ))}
+                   </div>
+                </div>
+              )}
             </section>
           </div>
         </div>
@@ -533,7 +550,7 @@ const App: React.FC = () => {
             <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.6em]">ENGINE ONLINE • STRAT-NODE SECURE</p>
             <div className="flex gap-6 items-center">
               <span className="w-3 h-3 rounded-full bg-treebo-orange animate-pulse"></span>
-              <span className="text-[10px] text-white font-black uppercase tracking-widest">GEMINI-3X FLASH</span>
+              <span className="text-[10px] text-white font-black uppercase tracking-widest">GEMINI-3 FLASH ACTIVE</span>
             </div>
           </div>
         </div>

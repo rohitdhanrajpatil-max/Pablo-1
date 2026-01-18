@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { EvaluationResult, EvaluationType } from "../types";
+import { EvaluationResult, EvaluationType, OTAStatus, EvaluationDecision } from "../types";
 
 const SYSTEM_INSTRUCTION = `
 You are a Senior Commercial & Strategy Leader at Treebo Hotels. 
@@ -12,19 +12,24 @@ You MUST provide 100% accurate, live data for the Treebo Presence section using 
 2. Identify nearest neighbor distance and name.
 
 UNIT INVENTORY INTEGRITY AUDIT (CRITICAL - CROSS-CHANNEL PARITY):
-This is your most important task. You MUST ensure the inventory audit matches real-world listings on Booking.com and MakeMyTrip (MMT).
 1. SEARCH PROTOCOL: Search "[HOTEL NAME] [CITY] room types site:booking.com" AND "[HOTEL NAME] [CITY] room types site:makemytrip.com".
-2. NOMENCLATURE CHECK: If the property is a Treebo, look for mapping of 'Oak' (Standard), 'Maple' (Deluxe), 'Mahogany' (Premium).
-3. CONFIGURATION RISK: Identify if room sizes or bed types differ between platforms (e.g., MMT says King Bed, Booking says Twin).
-4. AMENITY PARITY: Check for discrepancies in inclusions like "Free Breakfast" or "AC" between MMT and Booking.
-5. Populate 'descriptionAudit' with specific findings like "Matches MMT exactly" or "Discrepancy: MMT lists as Deluxe, Booking lists as Standard".
+2. NOMENCLATURE CHECK: If the property is a Treebo, look for mapping of 'Oak', 'Maple', 'Mahogany'.
+3. CONFIGURATION RISK: Identify if room sizes or bed types differ between platforms.
+4. AMENITY PARITY: Check for discrepancies in inclusions between MMT and Booking.
 
-MANDATORY DATA SOURCE PROTOCOLS:
-1. OTA Performance Audit: Check status for Treebo, MMT, Booking.com, Agoda, Goibibo, and Google Maps.
-2. COMPETITIVE INDEX (3KM RADIUS): Identify 4 local peers with 3 pos/neg themes each.
-3. Protocol Audit: Return "PASS", "FAIL", or "WARNING".
+MANDATORY OTA CHANNEL AUDIT (THESE 6 MUST BE INCLUDED):
+1. treebo.com
+2. MakeMyTrip (MMT)
+3. Booking.com
+4. Agoda
+5. Goibibo
+6. Google Maps (GMB)
 
-Output ONLY valid JSON matching the provided schema.`;
+COMPETITIVE INDEX (3KM RADIUS): Identify 4 local peers with 3 positive/negative sentiment themes each.
+
+OUTPUT FORMAT:
+Return ONLY a valid JSON object. Do not include any text before or after the JSON.
+Ensure all fields are populated correctly. If a value is missing, use a safe default like 0, [], or "N/A".`;
 
 export const evaluateHotel = async (hotelName: string, city: string, type: EvaluationType): Promise<EvaluationResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
@@ -39,20 +44,16 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
       Mode: ${type}
 
       EXECUTION PROTOCOL:
-      1. UNIT INVENTORY INTEGRITY (HIGH PRIORITY): Scrape and compare room configurations from site:booking.com and site:makemytrip.com for ${hotelName} ${city}. 
-         - Identify if naming (e.g. Oak/Maple) matches.
-         - Identify any 'Config Risk' where platform data conflicts.
+      1. UNIT INVENTORY INTEGRITY: Scrape and compare room configurations from site:booking.com and site:makemytrip.com for ${hotelName} ${city}. 
       2. SYNERGY AUDIT: Count Treebo properties in ${city} via site:treebo.com.
-      3. CHANNEL AUDIT: Verify presence/ratings on all 6 mandatory platforms.
-      4. COMPETITIVE INDEX (3KM): Fetch data for 4 peers within 3km.
+      3. CHANNEL AUDIT: Verify presence/ratings on exactly 6 platforms: Treebo, MMT, Booking, Agoda, Goibibo, GMB.
+      4. COMPETITIVE INDEX (3KM): Fetch data for 4 peers.
       
-      Return a robust 'roomTypeAudit' reflecting the side-by-side comparison of Booking.com and MMT.
       Return as valid JSON.`,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
-        tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
-        thinkingConfig: { thinkingBudget: 4096 },
+        tools: [{ googleSearch: {} }],
         responseSchema: {
           type: Type.OBJECT,
           properties: {
@@ -95,21 +96,11 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
                   sizeSqFt: { type: Type.STRING },
                   occupancy: { type: Type.STRING },
                   amenities: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  descriptionAudit: { type: Type.STRING, description: "Critical: Cross-reference findings between Booking.com and MMT" },
-                  configRisk: { type: Type.STRING, description: "Risk identified in naming or configuration parity" }
+                  descriptionAudit: { type: Type.STRING },
+                  configRisk: { type: Type.STRING }
                 },
                 required: ["roomName", "occupancy", "amenities", "descriptionAudit", "configRisk"]
               }
-            },
-            treeboPresence: {
-              type: Type.OBJECT,
-              properties: {
-                cityHotelCount: { type: Type.NUMBER },
-                nearestHotelName: { type: Type.STRING },
-                nearestHotelDistance: { type: Type.STRING },
-                marketShareContext: { type: Type.STRING }
-              },
-              required: ["cityHotelCount", "nearestHotelName", "nearestHotelDistance", "marketShareContext"]
             },
             otaAudit: {
               type: Type.ARRAY,
@@ -141,30 +132,6 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
                 required: ["name", "otaRating", "estimatedADR", "distance", "category", "topPositives", "topNegatives"]
               }
             },
-            guestReviews: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  platform: { type: Type.STRING },
-                  positive: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  negative: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  sentimentScore: { type: Type.NUMBER },
-                  recurringThemes: {
-                    type: Type.ARRAY,
-                    items: {
-                      type: Type.OBJECT,
-                      properties: {
-                        theme: { type: Type.STRING },
-                        impact: { type: Type.STRING }
-                      },
-                      required: ["theme", "impact"]
-                    }
-                  }
-                },
-                required: ["platform", "positive", "negative", "sentimentScore", "recurringThemes"]
-              }
-            },
             scorecard: {
               type: Type.ARRAY,
               items: {
@@ -180,29 +147,103 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
             keyRisks: { type: Type.ARRAY, items: { type: Type.STRING } },
             commercialUpside: { type: Type.ARRAY, items: { type: Type.STRING } },
             finalRecommendation: { type: Type.STRING },
-            hardStopFlagged: { type: Type.BOOLEAN }
-          },
-          required: [
-            "executiveSummary", 
-            "scorecard", 
-            "finalRecommendation", 
-            "protocolStatus", 
-            "keyRisks", 
-            "commercialUpside",
-            "otaAudit",
-            "competitors",
-            "targetHotelMetrics",
-            "guestReviews",
-            "treeboPresence",
-            "roomTypeAudit"
-          ]
+            treeboPresence: {
+              type: Type.OBJECT,
+              properties: {
+                cityHotelCount: { type: Type.NUMBER },
+                nearestHotelName: { type: Type.STRING },
+                nearestHotelDistance: { type: Type.STRING },
+                marketShareContext: { type: Type.STRING }
+              }
+            }
+          }
         }
       }
     });
 
-    if (!response.text) throw new Error("Audit engine timed out.");
-    return JSON.parse(response.text.trim());
+    if (!response.text) throw new Error("Strategic audit engine timed out.");
+    
+    let parsed: any = JSON.parse(response.text.trim());
+
+    // --- REPAIR LAYER START ---
+    
+    // Ensure executiveSummary is valid
+    if (!parsed.executiveSummary || typeof parsed.executiveSummary !== 'object') {
+      parsed.executiveSummary = {
+        hotelName, city, evaluationType: type,
+        finalDecision: EvaluationDecision.CONDITIONAL,
+        averageScore: 5.0
+      };
+    }
+    parsed.executiveSummary.averageScore = Number(parsed.executiveSummary.averageScore) || 5.0;
+
+    // Ensure protocolStatus is valid
+    if (!parsed.protocolStatus || typeof parsed.protocolStatus !== 'object') {
+      parsed.protocolStatus = {
+        duplicationAudit: OTAStatus.WARNING,
+        geoVerification: OTAStatus.WARNING,
+        complianceAudit: OTAStatus.WARNING,
+        notes: "Automated protocol verification generated default status."
+      };
+    }
+
+    // Ensure all 6 mandatory OTA platforms are present
+    const mandatoryPlatforms = [
+      { id: 'treebo', name: 'treebo.com' },
+      { id: 'makemytrip', name: 'MakeMyTrip' },
+      { id: 'booking', name: 'Booking.com' },
+      { id: 'agoda', name: 'Agoda' },
+      { id: 'goibibo', name: 'Goibibo' },
+      { id: 'google', name: 'Google Maps' }
+    ];
+
+    if (!Array.isArray(parsed.otaAudit)) parsed.otaAudit = [];
+    
+    mandatoryPlatforms.forEach(plat => {
+      const exists = parsed.otaAudit.some((a: any) => 
+        (a.platform || '').toLowerCase().includes(plat.id)
+      );
+      if (!exists) {
+        parsed.otaAudit.push({
+          platform: plat.name,
+          status: OTAStatus.WARNING,
+          currentRating: 'N/A',
+          channelBlockers: ['Platform status not explicitly returned by engine'],
+          recoveryPlan: [`Manual verification required for ${plat.name}`]
+        });
+      }
+    });
+
+    // Ensure numeric fields are numbers to prevent toFixed crashes
+    if (Array.isArray(parsed.competitors)) {
+      parsed.competitors.forEach((c: any) => {
+        c.otaRating = Number(c.otaRating) || 0;
+      });
+    }
+
+    if (Array.isArray(parsed.scorecard)) {
+      parsed.scorecard.forEach((s: any) => {
+        s.score = Number(s.score) || 0;
+      });
+    }
+
+    if (parsed.targetHotelMetrics) {
+      parsed.targetHotelMetrics.averageOTARating = Number(parsed.targetHotelMetrics.averageOTARating) || 0;
+      parsed.targetHotelMetrics.estimatedADR = Number(parsed.targetHotelMetrics.estimatedADR) || 0;
+    }
+
+    // Grounding Sources Extraction
+    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    const sources = groundingChunks
+      .filter((chunk: any) => chunk.web)
+      .map((chunk: any) => ({ title: chunk.web.title || 'Source', uri: chunk.web.uri }));
+    
+    parsed.groundingSources = sources;
+    // --- REPAIR LAYER END ---
+
+    return parsed as EvaluationResult;
   } catch (err: any) {
+    console.error("Gemini Service Error:", err);
     throw err;
   }
 };
