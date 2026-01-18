@@ -27,9 +27,12 @@ const RoomTypeAuditSection: React.FC<Props> = ({ rooms }) => {
           <div key={idx} className="bg-white rounded-3xl border border-slate-100 shadow-lg shadow-slate-200/30 overflow-hidden flex flex-col hover:border-treebo-orange/30 transition-all group">
             <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex justify-between items-start">
               <div className="space-y-1">
-                <h4 className="text-sm font-black text-treebo-brown uppercase tracking-tight group-hover:text-treebo-orange transition-colors">
-                  {room.roomName || 'Inventory Node'}
-                </h4>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-black text-treebo-brown uppercase tracking-tight group-hover:text-treebo-orange transition-colors">
+                    {room.roomName || 'Inventory Node'}
+                  </h4>
+                  <span className="text-[7px] font-black bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100 uppercase tracking-tighter">Verified: B.com + MMT</span>
+                </div>
                 <div className="flex gap-3">
                   <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest bg-white border border-slate-100 px-2 py-0.5 rounded">
                     {room.occupancy || 'Double'}
@@ -52,8 +55,14 @@ const RoomTypeAuditSection: React.FC<Props> = ({ rooms }) => {
             
             <div className="p-6 flex-grow space-y-4">
               <div className="space-y-2">
-                <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Audit Sentiment</p>
-                <p className="text-[11px] text-slate-600 font-medium leading-relaxed italic border-l-2 border-treebo-orange/20 pl-4 py-1">
+                <div className="flex justify-between items-center">
+                  <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Cross-Channel Logic Audit</p>
+                  <div className="flex gap-1">
+                    <div className="w-1 h-1 rounded-full bg-blue-400"></div>
+                    <div className="w-1 h-1 rounded-full bg-pink-400"></div>
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-600 font-medium leading-relaxed italic border-l-2 border-treebo-orange/20 pl-4 py-1 bg-slate-50/50 rounded-r-lg">
                   {room.descriptionAudit}
                 </p>
               </div>
@@ -61,12 +70,12 @@ const RoomTypeAuditSection: React.FC<Props> = ({ rooms }) => {
               {amenities.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {amenities.slice(0, 5).map((amenity, i) => (
-                    <span key={i} className="px-2 py-1 bg-slate-50 text-slate-500 rounded-md text-[9px] font-bold border border-slate-100">
+                    <span key={i} className="px-2 py-1 bg-white text-slate-500 rounded-md text-[9px] font-bold border border-slate-100">
                       {amenity}
                     </span>
                   ))}
                   {amenities.length > 5 && (
-                    <span className="px-2 py-1 bg-slate-50 text-slate-300 rounded-md text-[9px] font-bold border border-slate-100">
+                    <span className="px-2 py-1 bg-white text-slate-300 rounded-md text-[9px] font-bold border border-slate-100">
                       +{amenities.length - 5}
                     </span>
                   )}
@@ -82,7 +91,7 @@ const RoomTypeAuditSection: React.FC<Props> = ({ rooms }) => {
                   </svg>
                 </div>
                 <div className="space-y-0.5">
-                  <p className="text-[8px] font-black text-red-400 uppercase tracking-widest">Configuration Risk</p>
+                  <p className="text-[8px] font-black text-red-400 uppercase tracking-widest">Parity Node Risk</p>
                   <p className="text-[10px] font-black text-slate-700 leading-tight">{room.configRisk}</p>
                 </div>
               </div>

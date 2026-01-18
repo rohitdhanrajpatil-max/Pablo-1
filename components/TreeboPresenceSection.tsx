@@ -27,11 +27,14 @@ const TreeboPresenceSection: React.FC<Props> = ({ presence }) => {
                </svg>
             </div>
             <div>
-              <h3 className="text-sm font-black text-white uppercase tracking-wider">Network Synergy</h3>
-              <p className="text-[8px] font-black text-treebo-orange uppercase tracking-widest mt-0.5">Live Node Validation</p>
+              <h3 className="text-sm font-black text-white uppercase tracking-wider">Local Node Synergy Matrix</h3>
+              <p className="text-[8px] font-black text-treebo-orange uppercase tracking-widest mt-0.5">Treebo.com Network Data</p>
             </div>
           </div>
-          <span className="px-2 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded text-[7px] font-black uppercase tracking-widest">Connected</span>
+          <div className="flex flex-col items-end">
+            <span className="px-2 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded text-[7px] font-black uppercase tracking-widest mb-1">Live Sync</span>
+            <span className="text-[7px] font-bold text-white/30 uppercase tracking-tighter italic">Source: Treebo Official Inventory</span>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -39,13 +42,13 @@ const TreeboPresenceSection: React.FC<Props> = ({ presence }) => {
           {/* Node Count */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center group/stat hover:bg-white/10 transition-colors">
             <span className="text-4xl font-black text-white tracking-tighter leading-none">{presence.cityHotelCount}</span>
-            <span className="text-[8px] font-black text-white/40 uppercase tracking-widest mt-2">Active City Nodes</span>
+            <span className="text-[8px] font-black text-white/40 uppercase tracking-widest mt-2">Active City Clusters</span>
           </div>
 
           {/* Proximity Node */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col justify-center space-y-2 group/stat hover:bg-white/10 transition-colors">
             <div className="flex justify-between items-start">
-              <span className="text-[7px] font-black text-white/40 uppercase tracking-widest">Nearest Node</span>
+              <span className="text-[7px] font-black text-white/40 uppercase tracking-widest">Network Neighbor</span>
               <span className="text-[10px] font-black text-treebo-orange">{presence.nearestHotelDistance}</span>
             </div>
             <p className="text-[10px] font-black text-white uppercase tracking-tight truncate leading-none" title={presence.nearestHotelName}>
@@ -57,7 +60,7 @@ const TreeboPresenceSection: React.FC<Props> = ({ presence }) => {
         {/* Commercial Context Area */}
         <div className="mt-auto bg-gradient-to-r from-white/5 to-transparent p-6 rounded-2xl border border-white/5">
           <p className="text-xs font-black text-white/80 italic leading-relaxed">
-            <span className="text-treebo-orange mr-2">ANALYSIS:</span>
+            <span className="text-treebo-orange mr-2">SYNERGY LOGIC:</span>
             "{presence.marketShareContext}"
           </p>
         </div>

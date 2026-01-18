@@ -325,7 +325,7 @@ const App: React.FC = () => {
               <section className="space-y-8 page-break-before">
                 <div className="flex items-center justify-between gap-6">
                   <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-4 flex-grow">
-                    Competitive Index (MCI) & Recurring Sentiment
+                    Competitive Index (3KM Cluster) & Recurring Sentiment
                     <div className="h-px bg-slate-200 flex-grow"></div>
                   </h3>
                   {/* Multi-Select Category Filter */}
@@ -385,7 +385,7 @@ const App: React.FC = () => {
                   <div className="lg:col-span-3 bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden avoid-page-break shadow-xl shadow-slate-200/30 flex flex-col">
                     <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                       <p className="text-[9px] font-black text-treebo-brown uppercase tracking-[0.4em]">Market Nodes & Recurring Review Themes</p>
-                      <span className="bg-slate-900 text-white px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest">{filteredCompetitors.length} NODES</span>
+                      <span className="bg-slate-900 text-white px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest">{filteredCompetitors.length} NODES (3KM RADIUS)</span>
                     </div>
                     <div className="divide-y divide-slate-100 overflow-y-auto max-h-[600px] custom-scrollbar">
                       {filteredCompetitors.length > 0 ? filteredCompetitors.map((comp, idx) => (
@@ -395,7 +395,7 @@ const App: React.FC = () => {
                                 <p className="text-sm font-black text-treebo-brown uppercase tracking-tight group-hover:text-treebo-orange transition-colors">{comp.name}</p>
                                 <div className="flex items-center gap-3 mt-1">
                                     <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[7px] font-black uppercase tracking-widest">{comp.category}</span>
-                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{comp.distance}</span>
+                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{comp.distance} From Asset</span>
                                 </div>
                             </div>
                             <div className="text-right">

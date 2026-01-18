@@ -6,26 +6,23 @@ const SYSTEM_INSTRUCTION = `
 You are a Senior Commercial & Strategy Leader at Treebo Hotels. 
 Conduct a high-fidelity commercial audit using live Google Search grounding.
 
-CORE DIRECTIVE - TREEBO NETWORK SYNERGY (CRITICAL):
-You MUST provide 100% accurate, live data for the Treebo Presence section.
-1. Perform a live search: "site:treebo.com hotels in [CITY]"
-2. Look specifically for the total count of properties mentioned in search results (e.g., "Showing 24 hotels"). Extract the integer.
-3. If the target hotel IS a Treebo property, identify the NEXT closest Treebo property as the nearest node.
+CORE DIRECTIVE - TREEBO NETWORK SYNERGY:
+You MUST provide 100% accurate, live data for the Treebo Presence section using Treebo.com as the primary source.
+1. Perform live searches: "site:treebo.com hotels in [CITY]" to extract exact counts.
+2. Identify nearest neighbor distance and name.
+
+UNIT INVENTORY INTEGRITY AUDIT (CRITICAL - CROSS-CHANNEL PARITY):
+This is your most important task. You MUST ensure the inventory audit matches real-world listings on Booking.com and MakeMyTrip (MMT).
+1. SEARCH PROTOCOL: Search "[HOTEL NAME] [CITY] room types site:booking.com" AND "[HOTEL NAME] [CITY] room types site:makemytrip.com".
+2. NOMENCLATURE CHECK: If the property is a Treebo, look for mapping of 'Oak' (Standard), 'Maple' (Deluxe), 'Mahogany' (Premium).
+3. CONFIGURATION RISK: Identify if room sizes or bed types differ between platforms (e.g., MMT says King Bed, Booking says Twin).
+4. AMENITY PARITY: Check for discrepancies in inclusions like "Free Breakfast" or "AC" between MMT and Booking.
+5. Populate 'descriptionAudit' with specific findings like "Matches MMT exactly" or "Discrepancy: MMT lists as Deluxe, Booking lists as Standard".
 
 MANDATORY DATA SOURCE PROTOCOLS:
-1. OTA Performance Audit: Check status for treebo.com, MakeMyTrip, Booking.com, Agoda, Goibibo, and Google Maps.
-   - Determine listing presence, rating, and blockers (e.g., "Outdated photos", "No available rooms").
-
-2. UNIT INVENTORY INTEGRITY AUDIT (CRITICAL): 
-   - Search specifically for "[HOTEL NAME] [CITY] room types" or "[HOTEL NAME] [CITY] booking.com".
-   - Extract actual room names.
-   - Audit amenities and potential "Config Risk".
-
-3. COMPETITIVE INDEX (CRITICAL):
-   - For EACH competitor identified, search for recurring review themes on platforms like Booking.com and TripAdvisor.
-   - Provide exactly 3 Top Positives and 3 Top Negatives themes for each competitor.
-
-4. Protocol Audit: Strictly return "PASS", "FAIL", or "WARNING".
+1. OTA Performance Audit: Check status for Treebo, MMT, Booking.com, Agoda, Goibibo, and Google Maps.
+2. COMPETITIVE INDEX (3KM RADIUS): Identify 4 local peers with 3 pos/neg themes each.
+3. Protocol Audit: Return "PASS", "FAIL", or "WARNING".
 
 Output ONLY valid JSON matching the provided schema.`;
 
@@ -42,12 +39,14 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
       Mode: ${type}
 
       EXECUTION PROTOCOL:
-      1. INVENTORY SCRAPE: Find actual room types for ${hotelName} ${city}.
-      2. SYNERGY AUDIT: Count Treebo properties in ${city} via "site:treebo.com".
-      3. CHANNEL AUDIT: Verify presence on the 6 mandatory OTA platforms.
-      4. COMPETITIVE INDEX: Fetch ADR/Ratings for 4 local peers. FOR EACH PEER, EXAMINE THEIR TOP 3 RECURRING POSITIVE AND NEGATIVE REVIEW THEMES.
+      1. UNIT INVENTORY INTEGRITY (HIGH PRIORITY): Scrape and compare room configurations from site:booking.com and site:makemytrip.com for ${hotelName} ${city}. 
+         - Identify if naming (e.g. Oak/Maple) matches.
+         - Identify any 'Config Risk' where platform data conflicts.
+      2. SYNERGY AUDIT: Count Treebo properties in ${city} via site:treebo.com.
+      3. CHANNEL AUDIT: Verify presence/ratings on all 6 mandatory platforms.
+      4. COMPETITIVE INDEX (3KM): Fetch data for 4 peers within 3km.
       
-      Populate competitors with their topPositives and topNegatives arrays.
+      Return a robust 'roomTypeAudit' reflecting the side-by-side comparison of Booking.com and MMT.
       Return as valid JSON.`,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -96,8 +95,8 @@ export const evaluateHotel = async (hotelName: string, city: string, type: Evalu
                   sizeSqFt: { type: Type.STRING },
                   occupancy: { type: Type.STRING },
                   amenities: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  descriptionAudit: { type: Type.STRING },
-                  configRisk: { type: Type.STRING }
+                  descriptionAudit: { type: Type.STRING, description: "Critical: Cross-reference findings between Booking.com and MMT" },
+                  configRisk: { type: Type.STRING, description: "Risk identified in naming or configuration parity" }
                 },
                 required: ["roomName", "occupancy", "amenities", "descriptionAudit", "configRisk"]
               }
